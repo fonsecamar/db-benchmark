@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: locust-master
+  labels:
+    app: locust-master
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: locust-master
+  template:
+    metadata:
+      labels:
+        app: locust-master
+    spec:
+      nodeSelector:
+        app: system
+      containers:
+      - name: locust-master
+        image: ${IMAGE_NAME}
+        imagePullPolicy: Always
+        env:
+          - name: LOCUST_OPTIONS
+            value: "--master"
+        ports:
+        - containerPort: 8089

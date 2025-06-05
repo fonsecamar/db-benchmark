@@ -1,0 +1,36 @@
+[
+    {
+        "taskWeightPct": 100,
+        "taskName": "insert1",
+        "command": {
+            "definition": "INSERT INTO cart (player_id, ticket_id, ticket_date, contest, numbers) VALUES (@player_id, @ticket_id, @ticket_date, @contest, @numbers)",
+            "parameters": [
+                {
+                    "name": "@player_id",
+                    "type": "random_int",
+                    "start": 1,
+                    "end": 150000000
+                },
+                {
+                    "name": "@ticket_id",
+                    "type": "guid"
+                },
+                {
+                    "name": "@ticket_date",
+                    "type": "datetime"
+                },
+                {
+                    "name": "@contest",
+                    "type": "random_int",
+                    "start": 1,
+                    "end": 1000
+                },
+                {
+                    "name": "@numbers",
+                    "type": "constant_string",
+                    "value": "[1,2,3,4,5,6]"
+                }
+            ]
+        }
+    }
+]

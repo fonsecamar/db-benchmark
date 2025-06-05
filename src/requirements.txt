@@ -1,0 +1,4 @@
+locust
+pymssql
+dnspython
+faker
