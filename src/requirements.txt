@@ -1,0 +1,6 @@
+locust
+pymssql
+pymongo
+pyyaml
+dnspython
+faker

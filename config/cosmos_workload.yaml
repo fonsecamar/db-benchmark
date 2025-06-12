@@ -1,0 +1,68 @@
+type: CosmosDB
+tasks:
+  - taskName: insert1
+    taskWeightPct: 50
+    command:
+      type: insert
+      collection: cart
+      parameters:
+        - name: "@player_id"
+          type: random_int
+          start: 1
+          end: 150000000
+        - name: "@ticket_id"
+          type: guid
+        - name: "@ticket_date"
+          type: datetime
+        - name: "@contest"
+          type: random_int
+          start: 1
+          end: 1000
+        - name: "@numbers"
+          type: constant_string
+          value: "[1,2,3,4,5,6]"
+      document:
+        player_id: "@player_id"
+        ticket_id: "@ticket_id"
+        ticket_date: "@ticket_date"
+        contest: "@contest"
+        numbers: "@numbers"
+        metadata:
+          createdBy: "benchmark"
+          tags:
+            - "test"
+            - "cosmos"
+          nested:
+            info: "example"
+            value: 123
+  - taskName: upsert1
+    taskWeightPct: 50
+    command:
+      type: upsert
+      collection: cart
+      parameters:
+        - name: "@player_id"
+          type: random_int
+          start: 1
+          end: 150000000
+        - name: "@ticket_id"
+          type: guid
+        - name: "@ticket_date"
+          type: datetime
+        - name: "@contest"
+          type: random_int
+          start: 1
+          end: 1000
+        - name: "@numbers"
+          type: constant_string
+          value: "[1,2,3,4,5,6]"
+      document:
+        player_id: "@player_id"
+        ticket_id: "@ticket_id"
+        ticket_date: "@ticket_date"
+        contest: "@contest"
+        numbers: "@numbers"
+        extra:
+          details:
+            source: "upsert"
+            timestamp: "@ticket_date"
