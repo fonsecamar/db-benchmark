@@ -47,13 +47,13 @@ class SQLExecutor(BaseExecutor):
             with self.connection.cursor(as_dict=True) as cursor:
                 cursor.execute(self.parsedCommands[task_name], tuple(param_values))
             total_time = int((time.time() - start_time) * 1000)
-            self._fire_event('SQLCommand', task_name, total_time, response_length=1)
+            self._fire_event('SQL', task_name, total_time, response_length=1)
         except OperationalError as e:
             total_time = int((time.time() - start_time) * 1000)
-            self._fire_event('SQLCommand-Error', task_name, total_time, exception=e)
+            self._fire_event('SQL-Error', task_name, total_time, exception=e)
             logging.exception(f"Operational error executing command: {e}")
             self.reset_connection()
         except Exception as e:
             total_time = int((time.time() - start_time) * 1000)
-            self._fire_event('SQLCommand-Error', task_name, total_time, exception=e)
+            self._fire_event('SQL-Error', task_name, total_time, exception=e)
             logging.exception(f"Error executing command: {e}")

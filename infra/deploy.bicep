@@ -19,7 +19,7 @@ param storageAccountName string = 'blob${suffix}'
 @maxLength(50)
 param acrName string = 'acr${suffix}'
 
-param aksVMSku string = 'Standard_D4as_v5'
+param aksVMSku string = 'Standard_D8as_v5'
 
 resource acr 'Microsoft.ContainerRegistry/registries@2025-04-01' = {
   name: acrName

@@ -10,6 +10,7 @@ class MongoDBExecutor(BaseExecutor):
         self.client = None
         self.db = None
         self._connect()
+        self._param_map_cache = {}
 
     def _connect(self):
         try:
@@ -17,7 +18,7 @@ class MongoDBExecutor(BaseExecutor):
                 self.environment.parsed_options.mongodb_connection_string,
                 serverSelectionTimeoutMS=5000
             )
-            logging.info("MongoDB connection established.")
+            logging.debug("MongoDB connection established.")
         except Exception as e:
             logging.exception(f"MongoDB connection error: {e}")
             self.client = None
@@ -35,21 +36,40 @@ class MongoDBExecutor(BaseExecutor):
         db_name = command.get('database')
         db = self.client[db_name]
 
+        update_template = {}
         # Determine which JSON object to use for parameter mapping
         command_type = command.get('type')
         if command_type == 'insert':
             json_template = command.get('document', {})
         elif command_type == 'aggregate':
             json_template = command.get('pipeline', [])
-        elif command_type in ('find', 'update', 'delete'):
+        elif command_type in ('find', 'delete', 'update', 'replace'):
             json_template = command.get('filter', {})
+            if command_type == 'update':
+                update_template = command.get('update', {})
+            elif command_type == 'replace':
+                update_template = command.get('replacement', {})
         else:
             json_template = {}
 
-        parameters = command.get('parameters', [])
-        # Map all parameter paths in one pass
-        param_names = [param.get('name') for param in parameters]
-        param_paths_dict = self._map_all_param_paths(json_template, param_names)
+        cache_key = f"{task_name}:{command_type}"
+        if cache_key not in self._param_map_cache:
+            parameters = command.get('parameters', [])
+            param_names = [param.get('name') for param in parameters]
+            param_paths_dict = self._map_all_param_paths(json_template, param_names)
+            param_paths_dict_upd = self._map_all_param_paths(update_template, param_names)
+            self._param_map_cache[cache_key] = {
+                'parameters': parameters,
+                'param_names': param_names,
+                'param_paths_dict': param_paths_dict,
+                'param_paths_dict_upd': param_paths_dict_upd
+            }
+        else:
+            cache = self._param_map_cache[cache_key]
+            parameters = cache['parameters']
+            param_names = cache['param_names']
+            param_paths_dict = cache['param_paths_dict']
+            param_paths_dict_upd = cache['param_paths_dict_upd']
 
         # Generate parameter values
         param_values = {}
@@ -58,46 +78,39 @@ class MongoDBExecutor(BaseExecutor):
             param_values[param.get('name')] = value
 
         # Replace all parameters in the template
-        replaced_json = self._replace_all_params(json_template, param_paths_dict, param_values)
+        final_command = self._replace_all_params(json_template, param_paths_dict, param_values)
+        upd_command = self._replace_all_params(update_template, param_paths_dict_upd, param_values)
 
         collection_name = command.get('collection')
         collection = db[collection_name] if collection_name else None
-
-        document = None
-        pipeline = None
-        if command_type == 'insert':
-            document = replaced_json
-        elif command_type == 'aggregate':
-            pipeline = replaced_json
-        elif command_type in ('find', 'update', 'delete'):
-            document = replaced_json
 
         start_time = time.time()
         try:
             result = None
             if command_type == 'insert':
-                result = collection.insert_one(document)
-                response_length = 1
+                result = collection.insert_one(final_command)
             elif command_type == 'aggregate':
-                cursor = collection.aggregate(pipeline)
-                response_length = len(list(cursor))
+                logging.debug(f"Executing MongoDB aggregate command: {final_command}")
+                cursor = collection.aggregate(final_command)
             elif command_type == 'find':
-                cursor = collection.find(document)
-                response_length = len(list(cursor))
-            #elif command_type == 'update':
-            #    update_doc = DataManager.replace_mongo_vars(command_definition.get('update', {}), param_values)
-            #    result = collection.update_one(document, update_doc)
-            #    response_length = result.modified_count
+                logging.debug(f"Executing MongoDB find command: {final_command}")
+                cursor = collection.find(final_command)
+            elif command_type == 'update':
+                logging.debug(f"Executing MongoDB update command: {final_command}, update: {upd_command}")
+                result = collection.update_one(final_command, upd_command, upsert=True)
+            elif command_type == 'replace':
+                logging.debug(f"Executing MongoDB replace command: {final_command}, update: {upd_command}")
+                result = collection.replace_one(final_command, upd_command, upsert=True)
             elif command_type == 'delete':
-                result = collection.delete_one(document)
-                response_length = result.deleted_count
+                logging.debug(f"Executing MongoDB delete command: {final_command}")
+                result = collection.delete_one(final_command)
             else:
                 logging.error(f"Unsupported MongoDB command type: {command_type}")
                 return
 
             total_time = int((time.time() - start_time) * 1000)
-            self._fire_event('MongoDBCommand', task_name, total_time, response_length=response_length)
+            self._fire_event('MongoDB', task_name, total_time, response_length=1)
         except Exception as e:
             total_time = int((time.time() - start_time) * 1000)
-            self._fire_event('MongoDBCommand-Error', task_name, total_time, exception=e)
+            self._fire_event('MongoDB-Error', task_name, total_time, exception=e)
             logging.exception(f"Error executing MongoDB command: {e}")

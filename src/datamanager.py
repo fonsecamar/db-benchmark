@@ -54,7 +54,7 @@ class DataManager:
             return DataManager.faker.email(), "%s"
         elif param_type == "constant_string":
             return param.get('value'), "%s"
-        elif param_type == "constant_int64":
+        elif param_type == "constant_int":
             return int(param.get('value')), "%d"
         elif param_type == "concat":
             sb = []
