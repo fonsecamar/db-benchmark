@@ -1,6 +1,6 @@
-locust
-pymssql
-pymongo
-pyyaml
-dnspython
+azure-cosmos
 faker
+locust
+pymongo
+pymssql
+pyyaml

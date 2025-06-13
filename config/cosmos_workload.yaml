@@ -1,19 +1,20 @@
 type: CosmosDB
 tasks:
   - taskName: insert1
-    taskWeightPct: 50
+    taskWeightPct: 25
     command:
       type: insert
+      database: lab
       collection: cart
       parameters:
         - name: "@player_id"
-          type: random_int
+          type: random_int_as_string
           start: 1
           end: 150000000
         - name: "@ticket_id"
           type: guid
         - name: "@ticket_date"
-          type: datetime
+          type: datetimeISO
         - name: "@contest"
           type: random_int
           start: 1
@@ -23,7 +24,7 @@ tasks:
           value: "[1,2,3,4,5,6]"
       document:
         player_id: "@player_id"
-        ticket_id: "@ticket_id"
+        id: "@ticket_id"
         ticket_date: "@ticket_date"
         contest: "@contest"
         numbers: "@numbers"
@@ -35,20 +36,22 @@ tasks:
           nested:
             info: "example"
             value: 123
+
   - taskName: upsert1
-    taskWeightPct: 50
+    taskWeightPct: 25
     command:
       type: upsert
+      database: lab
       collection: cart
       parameters:
         - name: "@player_id"
-          type: random_int
+          type: random_int_as_string
           start: 1
           end: 150000000
         - name: "@ticket_id"
           type: guid
         - name: "@ticket_date"
-          type: datetime
+          type: datetimeISO
         - name: "@contest"
           type: random_int
           start: 1
@@ -58,7 +61,7 @@ tasks:
           value: "[1,2,3,4,5,6]"
       document:
         player_id: "@player_id"
-        ticket_id: "@ticket_id"
+        id: "@ticket_id"
         ticket_date: "@ticket_date"
         contest: "@contest"
         numbers: "@numbers"
@@ -66,3 +69,50 @@ tasks:
           details:
             source: "upsert"
             timestamp: "@ticket_date"
+
+  - taskName: delete1
+    taskWeightPct: 15
+    command:
+      type: delete
+      database: lab
+      collection: cart
+      partitionKey:
+        - "@player_id"
+      id: "@ticket_id"
+      parameters:
+        - name: "@player_id"
+          type: random_int_as_string
+          start: 1
+          end: 150000000
+        - name: "@ticket_id"
+          type: guid
+
+  - taskName: point_read1
+    taskWeightPct: 15
+    command:
+      type: point_read
+      database: lab
+      collection: cart
+      partitionKey:
+        - "@player_id"
+      id: "@ticket_id"
+      parameters:
+        - name: "@player_id"
+          type: random_int_as_string
+          start: 1
+          end: 150000000
+        - name: "@ticket_id"
+          type: guid
+
+  - taskName: select1
+    taskWeightPct: 20
+    command:
+      type: select
+      database: lab
+      collection: cart
+      query: 'SELECT * FROM cart c WHERE c.player_id = @player_id'
+      parameters:
+        - name: "@player_id"
+          type: random_int
+          start: 1
+          end: 150000000

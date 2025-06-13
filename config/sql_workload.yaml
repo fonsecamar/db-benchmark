@@ -1,6 +1,6 @@
 type: SQL
 tasks:
-  - taskName: insert1
+  - taskName: insert
     taskWeightPct: 50
     command:
       definition: INSERT INTO cart (player_id, ticket_id, ticket_date, contest, numbers) VALUES (@player_id, @ticket_id, @ticket_date, @contest, @numbers)
@@ -20,14 +20,48 @@ tasks:
         - name: "@numbers"
           type: constant_string
           value: "[1,2,3,4,5,6]"
-  - taskName: insert2
-    taskWeightPct: 50
+
+  - taskName: update
+    taskWeightPct: 5
     command:
-      definition: INSERT INTO teste1 (c1, c2, c3) VALUES (@c1, @c2, getdate())
+      definition: UPDATE cart SET numbers = @numbers WHERE player_id = @player_id
       parameters:
-        - name: "@c1"
+        - name: "@numbers"
+          type: constant_string
+          value: "[7,8,9,10,11,12]"
+        - name: "@player_id"
           type: random_int
           start: 1
           end: 150000000
-        - name: "@c2"
+
+  - taskName: delete
+    taskWeightPct: 5
+    command:
+      definition: DELETE FROM cart WHERE player_id = @player_id
+      parameters:
+        - name: "@player_id"
+          type: random_int
+          start: 1
+          end: 150000000
+
+  - taskName: select
+    taskWeightPct: 35
+    command:
+      definition: SELECT * FROM cart WHERE player_id = @player_id
+      parameters:
+        - name: "@player_id"
+          type: random_int
+          start: 1
+          end: 150000000
+
+  - taskName: stored_procedure
+    taskWeightPct: 5
+    command:
+      definition: EXEC sp_teste1_ins @param1, @param2
+      parameters:
+        - name: "@param1"
+          type: random_int
+          start: 1
+          end: 1000
+        - name: "@param2"
           type: faker.fullname
