@@ -86,5 +86,3 @@ kubectl apply -f -
 kubectl apply -f -
 
 Write-Host "Deployment complete. AKS cluster '$AksName' is ready and workloads are deployed."
-
-kubectl port-forward service/master 8089:8089
