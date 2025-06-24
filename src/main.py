@@ -59,17 +59,17 @@ def create_user_class(class_name: str, _type: str, _workload_name: str, tasks: L
             fullTaskName = f"{_workload_name}_{task_def.taskName}"
             func = create_task_function(task_def.command, fullTaskName)
             setattr(DynamicUser, task_def.taskName, func)
-            logging.debug(f"Adding task {task_def.taskName}:weight {task_def.taskWeightPct} to user class {class_name}")
-            task_dict[getattr(DynamicUser, task_def.taskName)] = task_def.taskWeightPct
+            logging.info(f"Adding task {task_def.taskName}:weight {task_def.taskWeightPct} to user class {class_name}")
+            task_dict[func] = task_def.taskWeightPct
+    
     DynamicUser.tasks = task_dict
-
     DynamicUser.__name__ = class_name
     return DynamicUser
 
 classes = {}
 for setting in all_profiles:
     new_class_name = f"{setting.workloadName.replace('_', '')}_{setting.type.upper()}_User"
-    logging.debug(f"Creating user class: {new_class_name}")
+    logging.info(f"Creating user class: {new_class_name}")
     classes[new_class_name] = create_user_class(new_class_name, setting.type, setting.workloadName, setting.tasks)
 
 globals().update({cls.__name__: cls for cls in classes.values()})

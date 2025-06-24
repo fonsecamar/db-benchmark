@@ -7,12 +7,16 @@ spec:
     storage: 5Gi
   accessModes:
     - ReadWriteMany
-  persistentVolumeReclaimPolicy: Retain
+  persistentVolumeReclaimPolicy: Delete
   storageClassName: azureblob-fuse-premium
+  mountOptions:
+    - -o allow_other
+    - --file-cache-timeout=1
+    - --block-cache-disk-timeout=1
+    - --attr-cache-timeout=1
   csi:
     driver: blob.csi.azure.com
-    readOnly: false
-    volumeHandle: pv-blob-config
+    volumeHandle: ${STORAGE_ACCOUNT}_${CONTAINER_NAME}
     volumeAttributes:
       resourceGroup: ${RESOURCE_GROUP}
       containerName: ${CONTAINER_NAME}

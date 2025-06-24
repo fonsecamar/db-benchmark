@@ -27,6 +27,10 @@ class BaseExecutor:
             var = match.group(0)
             return mapping.get(var, "%s")  # Default to %s if not found
         return re.sub(r'@\w+', replacer, sql)
+    
+    def _replace_string_default(self, sql) -> str:
+        # Replace all @variables with default %s placeholder
+        return re.sub(r'@\w+', "%s", sql)
 
 
     # Utility to map all parameter names to their paths in a single pass
