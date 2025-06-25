@@ -23,7 +23,7 @@ Currently supported databases:
 - Docker
 - Azure CLI (for AKS deployment)
 - kubectl (for AKS deployment)
-- (Optional) Access to Azure subscription for Cosmos DB and AKS
+- A pre-existing database for testing
 
 Install Python dependencies:
 ```pwsh
@@ -35,10 +35,10 @@ Workload configuration files are located in the `config` directory.
 You can edit these YAML files to define and customize benchmarking scenarios for Cosmos DB, MongoDB, or SQL databases.
 Each YAML file appears as a user class in the Locust UI, allowing you to select and run different workloads.
 
-When deploying to AKS, these configuration files are uploaded to Azure Blob Storage and should be updated there as needed.
+When deploying to AKS, these configuration files are uploaded to the `config` File Share in Azure Blob Storage and should be updated there as needed.
 For local runs, the `config` folder is mounted directly into the container, so no upload is required.
 
-Note: If you change a configuration file after Locust has started, you must restart the relevant pod for changes to take effect.
+Note: If you change a configuration file after Locust has started, you must restart the pods for changes to take effect.
 
 ## Local Deployment with Docker
 
@@ -58,6 +58,15 @@ docker run -p 8089:8089 -e LOCUST_OPTIONS="--class-picker" -v ${PWD}/config/:/ap
 ```pwsh
 ./deploy/setupAKS.ps1 -ResourceGroupName <resource group name> -Location <location> [-AksName <aks name> -StorageAccountName <storage account> -AcrName <container registry> -Suffix <resource suffix> -AksVMSku <vm sku>]
 ```
+
+> Resources created:
+> - Resource group
+> - Azure Blob Storage Standard and a File Share
+> - Azure Container Registry Basic
+> - Azure Kubernetes Services with 2 node pools
+>
+>> Database resources for performance testing are not created by this template.
+
 
 2. Port-forward Locust master:
 ```pwsh
