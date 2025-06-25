@@ -53,16 +53,16 @@ def create_user_class(class_name: str, _type: str, _workload_name: str, tasks: L
             super().__init__(environment, *args, **kwargs)
             self.executor = executor_factory(environment)
 
-    task_dict = {}
+    task_list = []
     for task_def in tasks:
-        if task_def.taskWeightPct > 0:
-            fullTaskName = f"{_workload_name}_{task_def.taskName}"
-            func = create_task_function(task_def.command, fullTaskName)
-            setattr(DynamicUser, task_def.taskName, func)
-            logging.info(f"Adding task {task_def.taskName}:weight {task_def.taskWeightPct} to user class {class_name}")
-            task_dict[func] = task_def.taskWeightPct
+        fullTaskName = f"{_workload_name}_{task_def.taskName}"
+        func = create_task_function(task_def.command, fullTaskName)
+        setattr(DynamicUser, task_def.taskName, func)
+        logging.info(f"Adding task {task_def.taskName}:weight {task_def.taskWeightPct} to user class {class_name}")
+        for i in range(task_def.taskWeightPct):
+            task_list.append(func)
     
-    DynamicUser.tasks = task_dict
+    DynamicUser.tasks = task_list
     DynamicUser.__name__ = class_name
     return DynamicUser
 
