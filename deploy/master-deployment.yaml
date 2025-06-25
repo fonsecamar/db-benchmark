@@ -19,7 +19,7 @@ spec:
       volumes:
       - name: config-volume
         persistentVolumeClaim:
-          claimName: pvc-blob-config
+          claimName: pvc-azurefile-config
       containers:
       - name: locust-master
         image: ${IMAGE_NAME}

@@ -50,14 +50,23 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2024-01-01' = {
   }
 }
 
-resource blobservices 'Microsoft.Storage/storageAccounts/blobServices@2024-01-01' = {
+resource fileServices 'Microsoft.Storage/storageAccounts/fileServices@2024-01-01' = {
   parent: storageAccount
   name: 'default'
+  properties: {
+    shareDeleteRetentionPolicy: {
+      enabled: false
+    }
+  }
 }
 
-resource configContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2024-01-01' = {
-  parent: blobservices
-  name: 'config'  
+resource configShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2024-01-01' = {
+  parent: fileServices
+  name: 'config'
+  properties: {
+    accessTier: 'Hot'
+    enabledProtocols: 'SMB'
+  }
 }
 
 // AKS Cluster with 2 node pools
@@ -162,5 +171,5 @@ resource acrRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' 
 
 output aksName string = aks.name
 output storageAccountName string = storageAccount.name
-output containerName string = configContainer.name
+output shareName string = configShare.name
 output acrLogin string = acr.properties.loginServer

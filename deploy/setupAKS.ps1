@@ -36,7 +36,7 @@ $bicepOutput = az deployment group create `
 
 $AksName = $bicepOutput.aksName.value
 $StorageAccountName = $bicepOutput.storageAccountName.value
-$ContainerName = $bicepOutput.containerName.value
+$ShareName = $bicepOutput.shareName.value
 $AcrLogin = $bicepOutput.acrLogin.value
 
 $AccountKey = az storage account keys list `
@@ -48,13 +48,12 @@ $ConfigFolder = "../config/*"
 $YamlFiles = Get-ChildItem -Path $ConfigFolder -Include *.yaml,*.yml -File
 
 foreach ($file in $YamlFiles) {
-    az storage blob upload `
+    az storage file upload `
         --account-name $StorageAccountName `
         --account-key $AccountKey `
-        --container-name $ContainerName `
-        --name $file.Name `
-        --file $file.FullName `
-        --overwrite
+        --share-name $ShareName `
+        --path $file.Name `
+        --source $file.FullName
 }
 
 # 3. Get AKS credentials
@@ -62,8 +61,8 @@ az aks get-credentials --resource-group $ResourceGroupName --name $AksName --ove
 
 az acr build --registry $AcrLogin --image $ImageName ../src/.
 
-kubectl delete secret azure-blob-secret --ignore-not-found
-kubectl create secret generic azure-blob-secret `
+kubectl delete secret azure-file-secret --ignore-not-found
+kubectl create secret generic azure-file-secret `
     --from-literal=azurestorageaccountname=$StorageAccountName `
     --from-literal=azurestorageaccountkey=$AccountKey `
     --type=Opaque
@@ -74,7 +73,7 @@ kubectl apply -f ../deploy/master-service.yaml
 (Get-Content ../deploy/config-volume.yaml) `
     -replace '\$\{RESOURCE_GROUP\}', $ResourceGroupName `
     -replace '\$\{STORAGE_ACCOUNT\}', $StorageAccountName `
-    -replace '\$\{CONTAINER_NAME\}', $ContainerName | `
+    -replace '\$\{SHARE_NAME\}', $ShareName | `
 kubectl apply -f -
 
 (Get-Content ../deploy/master-deployment.yaml) `
