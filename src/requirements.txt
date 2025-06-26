@@ -1,6 +1,8 @@
 azure-cosmos
 faker
 locust
+psycopg
+psycopg_binary
 pymongo
 pymssql
 pyyaml

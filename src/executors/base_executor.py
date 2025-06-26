@@ -23,8 +23,10 @@ class BaseExecutor:
         )
 
     def _connect(self) -> None:
-        """Override in subclass if needed."""
-        pass
+        raise NotImplementedError("Subclasses must implement this method.")
+    
+    def _disconnect(self) -> None:
+        raise NotImplementedError("Subclasses must implement this method.")
 
     def _replace_string_params(self, sql: str, mapping: Dict[str, str]) -> str:
         """Replace all @variables in SQL with their mapped values or %s."""

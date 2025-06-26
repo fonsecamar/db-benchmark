@@ -1,0 +1,77 @@
+type: PGSQL
+tasks:
+  - taskName: insert
+    taskWeightPct: 5
+    command:
+      definition: INSERT INTO cart (player_id, ticket_id, ticket_date, contest, numbers) VALUES (@player_id, @ticket_id, @ticket_date, @contest, @numbers)
+      parameters:
+        - name: "@player_id"
+          type: random_int
+          start: 1
+          end: 150000000
+        - name: "@ticket_id"
+          type: guid
+        - name: "@ticket_date"
+          type: datetime
+        - name: "@contest"
+          type: random_int
+          start: 1
+          end: 1000
+        - name: "@numbers"
+          type: constant_string
+          value: "[1,2,3,4,5,6]"
+
+  - taskName: update
+    taskWeightPct: 0
+    command:
+      definition: UPDATE cart SET numbers = @numbers WHERE player_id = @player_id
+      parameters:
+        - name: "@numbers"
+          type: constant_string
+          value: "[7,8,9,10,11,12]"
+        - name: "@player_id"
+          type: random_int
+          start: 1
+          end: 150000000
+
+  - taskName: delete
+    taskWeightPct: 0
+    command:
+      definition: DELETE FROM cart WHERE player_id = @player_id
+      parameters:
+        - name: "@player_id"
+          type: random_int
+          start: 1
+          end: 150000000
+
+  - taskName: select
+    taskWeightPct: 15
+    command:
+      type: ad-hoc
+      definition: SELECT * FROM cart WHERE player_id = @player_id
+      parameters:
+        - name: "@player_id"
+          type: random_int
+          start: 1
+          end: 150000000
+
+  - taskName: stored_procedure
+    taskWeightPct: 80
+    command:
+      definition: CALL sp_cart_ins(@player_id, @ticket_id::uuid, @ticket_date, @contest, @numbers::jsonb)
+      parameters:
+        - name: "@player_id"
+          type: random_int
+          start: 1
+          end: 150000000
+        - name: "@ticket_id"
+          type: guid
+        - name: "@ticket_date"
+          type: datetimeISO
+        - name: "@contest"
+          type: random_int
+          start: 1
+          end: 1000
+        - name: "@numbers"
+          type: constant_string
+          value: "[1,2,3,4,5,6]"

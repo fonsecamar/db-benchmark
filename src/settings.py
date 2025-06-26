@@ -61,7 +61,7 @@ def init_settings() -> List[Settings]:
             tasks = load_tasks(config)
             settings_list.append(Settings(
                 workloadName=workload_name,
-                type=config_type,
+                type=config_type.upper(),
                 tasks=tasks
             ))
         except Exception as e:

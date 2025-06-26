@@ -12,6 +12,7 @@ Currently supported databases:
 - Azure SQL Database (all), SQL Server
 - Azure Cosmos DB for NoSQL
 - Azure Cosmos DB for MongoDB (including native MongoDB)
+- Azure Database for PostgreSQL Flexible Server
 
 ## About Locust
 

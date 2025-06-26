@@ -15,6 +15,12 @@ class SQLExecutor(BaseExecutor):
 
     def _connect(self) -> None:
         try:
+            if self.connection and not self.connection.closed:
+                self.connection.close()
+        except Exception as e:
+            logging.exception(f"Error closing existing connection: {e}")
+
+        try:
             self.connection = pymssql.connect(
                 server=self.environment.parsed_options.sql_server,
                 user=self.environment.parsed_options.sql_user,
@@ -24,6 +30,11 @@ class SQLExecutor(BaseExecutor):
             )
         except Exception as e:
             logging.exception(f"Connection error occurred: {e}")
+            self.connection = None
+
+    def _disconnect(self) -> None:
+        if self.connection and not self.connection.closed:
+            self.connection.close()
             self.connection = None
 
     def execute(self, command: Dict, task_name: str) -> None:
@@ -93,7 +104,7 @@ class SQLExecutor(BaseExecutor):
             total_time = int((time.perf_counter() - start_time) * 1000)
             self._fire_event('SQL-Error', task_name, total_time, exception=e)
             logging.exception(f"Operational error executing command: {e}")
-            self.reset_connection()
+            self._connect()
         except Exception as e:
             total_time = int((time.perf_counter() - start_time) * 1000)
             self._fire_event('SQL-Error', task_name, total_time, exception=e)

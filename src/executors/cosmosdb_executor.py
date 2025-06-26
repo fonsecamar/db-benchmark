@@ -31,6 +31,10 @@ class CosmosDBExecutor(BaseExecutor):
             logging.exception(f"CosmosDB connection error: {e}")
             self.client = None
 
+    def _disconnect(self) -> None:
+        if self.client:
+            self.client = None
+
     def _get_container(self, db_name: str, collection_name: str):
         """Get or cache CosmosDB container client."""
         cache_key = (db_name, collection_name)

@@ -27,6 +27,12 @@ class MongoDBExecutor(BaseExecutor):
             self.client = None
             self.db = None
 
+    def _disconnect(self) -> None:
+        if self.client:
+            self.client.close()
+            self.client = None
+            self.db = None
+
     def execute(self, command: Dict, task_name: str) -> None:
         if self.client is None:
             logging.error("No MongoDB client available. Attempting to reconnect.")
