@@ -15,7 +15,7 @@ param(
     [string]$AksVMSku = $null
 )
 
-$ImageName = "opdbbenchmark:latest"
+$ImageName = "dbbenchmark:latest"
 
 # 1. Create the resource group
 az group create --name $ResourceGroupName --location $Location

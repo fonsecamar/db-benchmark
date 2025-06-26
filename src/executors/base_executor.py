@@ -1,14 +1,19 @@
 import re
 import copy
+from typing import Any, Dict, List
+from collections import defaultdict
 
 class BaseExecutor:
     abstract = True
+    _param_pattern = re.compile(r'@\w+')
+
     def __init__(self, environment, workload_name):
         self.environment = environment
         self.workload_name = workload_name
         self.parsedCommands = {}
 
-    def _fire_event(self, request_type, name, response_time, exception=None, response_length=0):
+    def _fire_event(self, request_type: str, name: str, response_time: float, exception: Exception = None, response_length: int = 0) -> None:
+        """Fire a request event."""
         self.environment.events.request.fire(
             request_type=request_type,
             name=name,
@@ -17,25 +22,21 @@ class BaseExecutor:
             response_length=response_length,
         )
 
-    def _connect(self):
+    def _connect(self) -> None:
         """Override in subclass if needed."""
         pass
 
-    def _replace_string_params(self, sql, mapping) -> str:
-        # Replace all @variables with their placeholder
-        def replacer(match):
-            var = match.group(0)
-            return mapping.get(var, "%s")  # Default to %s if not found
-        return re.sub(r'@\w+', replacer, sql)
+    def _replace_string_params(self, sql: str, mapping: Dict[str, str]) -> str:
+        """Replace all @variables in SQL with their mapped values or %s."""
+        return self._param_pattern.sub(lambda m: mapping.get(m.group(), "%s"), sql)
     
-    def _replace_string_default(self, sql) -> str:
-        # Replace all @variables with default %s placeholder
-        return re.sub(r'@\w+', "%s", sql)
+    def _replace_string_default(self, sql: str) -> str:
+        """Replace all @variables in SQL with %s."""
+        return self._param_pattern.sub("%s", sql)
 
-
-    # Utility to map all parameter names to their paths in a single pass
-    def _map_all_param_paths(self, obj, param_names):
-        result = {param: [] for param in param_names}
+    def _map_all_param_paths(self, obj: Any, param_names: List[str]) -> Dict[str, List[List[Any]]]:
+        """Map all parameter names to their paths in a nested object."""
+        result = defaultdict(list)
         def recurse(o, current_path=None):
             if current_path is None:
                 current_path = []
@@ -54,12 +55,10 @@ class BaseExecutor:
                     if isinstance(item, (dict, list)):
                         recurse(item, current_path + [idx])
         recurse(obj)
-        return result
+        return dict(result)
 
-    def _replace_json_param_at_paths(self, obj, paths, value):
-        """
-        Replace all occurrences at the given paths in obj with value.
-        """
+    def _replace_json_param_at_paths(self, obj: Any, paths: List[List[Any]], value: Any) -> Any:
+        """Replace all occurrences at the given paths in obj with value."""
         for path in paths:
             target = obj
             for key in path[:-1]:
@@ -67,11 +66,13 @@ class BaseExecutor:
             target[path[-1]] = value
         return obj
 
-    def _replace_all_params(self, obj, param_paths_dict, param_values):
-        obj_copy = copy.deepcopy(obj)
+    def _replace_all_params(self, obj: Any, param_paths_dict: Dict[str, List[List[Any]]], param_values: Dict[str, Any], deepcopy_obj: bool = True) -> Any:
+        """Replace all parameters in obj using the provided paths and values."""
+        obj_copy = copy.deepcopy(obj) if deepcopy_obj else obj
         for param, paths in param_paths_dict.items():
             self._replace_json_param_at_paths(obj_copy, paths, param_values[param])
         return obj_copy    
 
-    def execute(self, command):
+    def execute(self, command: Any):
+        """Subclasses must implement this method."""
         raise NotImplementedError("Subclasses must implement this method.")

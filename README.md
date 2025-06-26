@@ -38,18 +38,20 @@ Each YAML file appears as a user class in the Locust UI, allowing you to select 
 When deploying to AKS, these configuration files are uploaded to the `config` File Share in Azure Blob Storage and should be updated there as needed.
 For local runs, the `config` folder is mounted directly into the container, so no upload is required.
 
-Note: If you change a configuration file after Locust has started, you must restart the pods for changes to take effect.
+> [!NOTE]
+>
+> If you change a configuration file after Locust has started, you must restart the pods for changes to take effect.
 
 ## Local Deployment with Docker
 
 1. Build the Docker image:
 ```pwsh
-docker build -t db-benchmark ./src
+docker build -t dbbenchmark:latest ./src
 ```
 
 2. Run the container:
 ```pwsh
-docker run -p 8089:8089 -e LOCUST_OPTIONS="--class-picker" -v ${PWD}/config/:/app/config -d db-benchmark
+docker run -p 8089:8089 -e LOCUST_OPTIONS="--class-picker" -v ${PWD}/config/:/app/config -d dbbenchmark:latest
 ```
 
 ## Deployment on Azure Kubernetes Service (AKS)
@@ -75,7 +77,7 @@ kubectl port-forward service/master 8089:8089
 
 3. Access the Locust UI at http://localhost:8089. Select the workload profile, specify the number of users and ramp details, enter your database credentials in the `Custom` section and start the test.
 
-## Useful commands
+### Useful commands
 
 - Scale worker replicas:
 ```pwsh

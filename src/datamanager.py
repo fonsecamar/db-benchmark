@@ -22,7 +22,7 @@ class DataManager:
             return datetime.now(timezone.utc).strftime("%Y-%m-%d"), "date"
         elif param_type == "datetime":
             return datetime.now(timezone.utc), "datetime"
-        elif param_type == "datetimeISO":
+        elif param_type == "datetimeiso":
             return datetime.now(timezone.utc).isoformat(), "datetime"
         elif param_type == "random_int":
             return random.randint(param.get('start'), param.get('end')), "int"
