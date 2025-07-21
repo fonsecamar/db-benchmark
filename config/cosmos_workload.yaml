@@ -113,6 +113,6 @@ tasks:
       query: 'SELECT * FROM cart c WHERE c.player_id = @player_id'
       parameters:
         - name: "@player_id"
-          type: random_int
+          type: random_int_as_string
           start: 1
           end: 150000000

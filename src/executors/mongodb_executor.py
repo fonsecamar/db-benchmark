@@ -1,5 +1,6 @@
 import logging
 import time
+import sys
 from typing import Any, Dict, Optional
 from pymongo import MongoClient
 from executors.base_executor import BaseExecutor
@@ -94,12 +95,12 @@ class MongoDBExecutor(BaseExecutor):
         if command_type == 'insert':
             db_op = lambda: collection.insert_one(final_command)
         elif command_type == 'aggregate':
-            db_op = lambda: collection.aggregate(final_command)
+            db_op = lambda: collection.aggregate(final_command).to_list()
         elif command_type == 'find':
             projection = command.get('projection', None)
             limit = command.get('limit', 0)
             sort = command.get('sort', None)
-            db_op = lambda: collection.find(filter=final_command, projection=projection, limit=limit, sort=sort)
+            db_op = lambda: collection.find(filter=final_command, projection=projection, limit=limit, sort=sort).to_list()
         elif command_type == 'update':
             db_op = lambda: collection.update_one(final_command, upd_command, upsert=True)
         elif command_type == 'replace':
@@ -116,7 +117,9 @@ class MongoDBExecutor(BaseExecutor):
         try:
             result = db_op()
             total_time = int((time.perf_counter() - start_time) * 1000)
-            self._fire_event('MongoDB', task_name, total_time, response_length=1)
+            logging.debug(f"MongoDB {command_type} command result: {result}")
+            length = sys.getsizeof(result)
+            self._fire_event('MongoDB', task_name, total_time, response_length=length)
         except Exception as e:
             total_time = int((time.perf_counter() - start_time) * 1000)
             self._fire_event('MongoDB-Error', task_name, total_time, exception=e)
