@@ -97,6 +97,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2025-03-01' = {
         mode: 'System'
         type: 'VirtualMachineScaleSets'
         enableAutoScaling: false
+        maxPods: 250  // Increased pod density with CNI Overlay
         nodeLabels: {
           app: 'system'
         }
@@ -119,6 +120,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2025-03-01' = {
         mode: 'User'
         osType: 'Linux'
         osSKU: 'Ubuntu'
+        maxPods: 250  // Increased pod density with CNI Overlay
         nodeLabels: {
           app: 'locust-worker'
         }
@@ -136,6 +138,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2025-03-01' = {
     }
     networkProfile: {
       networkPlugin: 'azure'
+      networkPluginMode: 'overlay'  // Enable CNI Overlay mode
       networkPolicy: 'azure'
       networkDataplane: 'azure'
       loadBalancerSku: 'Standard'
@@ -153,6 +156,11 @@ resource aks 'Microsoft.ContainerService/managedClusters@2025-03-01' = {
       ]
       ipFamilies: [
         'IPv4'
+      ]
+      // Pod subnet for overlay networking (optional but recommended)
+      podCidr: '10.244.0.0/16'
+      podCidrs: [
+        '10.244.0.0/16'
       ]
     }
     enableRBAC: true

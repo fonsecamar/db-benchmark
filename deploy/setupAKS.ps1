@@ -15,6 +15,8 @@ param(
     [string]$AksVMSku = $null
 )
 
+Push-Location $PSScriptRoot
+
 $ImageName = "dbbenchmark:latest"
 
 # 1. Create the resource group
@@ -68,20 +70,22 @@ kubectl create secret generic azure-file-secret `
     --type=Opaque
 
 # 4. Deploy master-service, master pod, and workers
-kubectl apply -f ../deploy/master-service.yaml
+kubectl apply -f ./master-service.yaml
 
-(Get-Content ../deploy/config-volume.yaml) `
+(Get-Content ./config-volume.yaml) `
     -replace '\$\{RESOURCE_GROUP\}', $ResourceGroupName `
     -replace '\$\{STORAGE_ACCOUNT\}', $StorageAccountName `
     -replace '\$\{SHARE_NAME\}', $ShareName | `
 kubectl apply -f -
 
-(Get-Content ../deploy/master-deployment.yaml) `
+(Get-Content ./master-deployment.yaml) `
     -replace '\$\{IMAGE_NAME\}', "$AcrLogin/$ImageName" | `
 kubectl apply -f -
 
-(Get-Content ../deploy/worker-deployment.yaml) `
+(Get-Content ./worker-deployment.yaml) `
     -replace '\$\{IMAGE_NAME\}', "$AcrLogin/$ImageName" | `
 kubectl apply -f -
+
+Pop-Location
 
 Write-Host "Deployment complete. AKS cluster '$AksName' is ready and workloads are deployed."

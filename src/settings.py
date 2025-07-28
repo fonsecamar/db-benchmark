@@ -7,14 +7,14 @@ import yaml
 
 @dataclass
 class TaskConfig:
-    taskWeightPct: float
+    taskWeight: int
     taskName: str
     command: Dict[str, Any]
 
     @staticmethod
     def from_dict(data: dict):
         return TaskConfig(
-            taskWeightPct=data.get("taskWeightPct"),
+            taskWeight=data.get("taskWeight"),
             taskName=data.get("taskName"),
             command=data.get("command", {})
         )
@@ -39,7 +39,12 @@ def load_tasks(config: dict) -> List[TaskConfig]:
     return tasks
 
 def init_settings() -> List[Settings]:
-    config_dir = Path(__file__).parent / 'config/'
+
+    if Path.cwd() == Path('/app'):
+        config_dir = Path('/app/config')
+    else:
+        config_dir = Path(__file__).parent.parent / 'config/'
+    
     config_dir = config_dir.resolve()
     logging.info(f"Loading settings from all JSON and YAML files in {config_dir}")
     settings_list: List[Settings] = []

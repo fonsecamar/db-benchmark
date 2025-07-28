@@ -1,7 +1,7 @@
 type: CosmosDB
 tasks:
   - taskName: insert1
-    taskWeightPct: 25
+    taskWeight: 25
     command:
       type: insert
       database: lab
@@ -38,7 +38,7 @@ tasks:
             value: 123
 
   - taskName: upsert1
-    taskWeightPct: 25
+    taskWeight: 25
     command:
       type: upsert
       database: lab
@@ -71,7 +71,7 @@ tasks:
             timestamp: "@ticket_date"
 
   - taskName: delete1
-    taskWeightPct: 15
+    taskWeight: 15
     command:
       type: delete
       database: lab
@@ -88,7 +88,7 @@ tasks:
           type: guid
 
   - taskName: point_read1
-    taskWeightPct: 15
+    taskWeight: 15
     command:
       type: point_read
       database: lab
@@ -105,7 +105,7 @@ tasks:
           type: guid
 
   - taskName: select1
-    taskWeightPct: 20
+    taskWeight: 20
     command:
       type: select
       database: lab
