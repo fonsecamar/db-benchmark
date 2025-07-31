@@ -47,6 +47,7 @@ class MongoDBExecutor(BaseExecutor):
 
         update_template = {}
         command_type = command.get('type')
+        batch_size = command.get('batchSize', 1)
         if command_type == 'insert':
             json_template = command.get('document', {})
         elif command_type == 'aggregate':
@@ -80,8 +81,12 @@ class MongoDBExecutor(BaseExecutor):
             param_paths_dict = cache['param_paths_dict']
             param_paths_dict_upd = cache['param_paths_dict_upd']
 
-        param_values = {param['name']: DataManager.generate_param_value(param)[0] for param in parameters}
-        final_command = self._replace_all_params(json_template, param_paths_dict, param_values)
+        bulkInsert = []
+        for i in range(batch_size):
+            param_values = {param['name']: DataManager.generate_param_value(param)[0] for param in parameters}
+            final_command = self._replace_all_params(json_template, param_paths_dict, param_values)
+            bulkInsert.append(final_command)
+        
         upd_command = self._replace_all_params(update_template, param_paths_dict_upd, param_values)
 
         collection_name = command.get('collection')
@@ -93,7 +98,10 @@ class MongoDBExecutor(BaseExecutor):
         sort = None
 
         if command_type == 'insert':
-            db_op = lambda: collection.insert_one(final_command)
+            if batch_size > 1:
+                db_op = lambda: collection.insert_many(bulkInsert, ordered=False)
+            else:
+                db_op = lambda: collection.insert_one(final_command)
         elif command_type == 'aggregate':
             db_op = lambda: collection.aggregate(final_command).to_list()
         elif command_type == 'find':

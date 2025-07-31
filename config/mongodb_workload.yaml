@@ -7,6 +7,7 @@ tasks:
       type: insert
       database: lab
       collection: cart
+      batchSize: 1
       parameters:
         - name: "@player_id"
           type: random_int

@@ -26,7 +26,8 @@ class SQLExecutor(BaseExecutor):
                 user=self.environment.parsed_options.sql_user,
                 password=self.environment.parsed_options.sql_password,
                 database=self.environment.parsed_options.sql_db_name,
-                autocommit=True
+                autocommit=True,
+                appname="locust-worker"
             )
         except Exception as e:
             logging.exception(f"Connection error occurred: {e}")
