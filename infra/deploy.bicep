@@ -21,6 +21,38 @@ param acrName string = 'acr${suffix}'
 
 param aksVMSku string = 'Standard_D8as_v5'
 
+@description('Virtual network address space')
+param vnetAddressSpace string = '10.0.0.0/16'
+
+@description('AKS subnet address space')
+param aksSubnetAddressSpace string = '10.0.10.0/24'
+
+@description('Name of the virtual network')
+param vnetName string = 'vnet-${suffix}'
+
+@description('Optional: Resource ID of existing subnet for AKS nodes. If provided, VNet creation will be skipped.')
+param existingSubnetId string = ''
+
+resource vnet 'Microsoft.Network/virtualNetworks@2024-07-01' = if (empty(existingSubnetId)) {
+  name: vnetName
+  location: location
+  properties: {
+    addressSpace: {
+      addressPrefixes: [
+        vnetAddressSpace
+      ]
+    }
+  }
+}
+
+resource aksSubnet 'Microsoft.Network/virtualNetworks/subnets@2024-07-01' = if (empty(existingSubnetId)) {
+  parent: vnet
+  name: 'aks-subnet'
+  properties: {
+    addressPrefix: aksSubnetAddressSpace
+  }
+}
+
 resource acr 'Microsoft.ContainerRegistry/registries@2025-04-01' = {
   name: acrName
   sku: {
@@ -32,7 +64,7 @@ resource acr 'Microsoft.ContainerRegistry/registries@2025-04-01' = {
   }
 }
 
-resource storageAccount 'Microsoft.Storage/storageAccounts@2024-01-01' = {
+resource storageAccount 'Microsoft.Storage/storageAccounts@2025-01-01' = {
   name: storageAccountName
   location: location
   sku: {
@@ -50,7 +82,7 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2024-01-01' = {
   }
 }
 
-resource fileServices 'Microsoft.Storage/storageAccounts/fileServices@2024-01-01' = {
+resource fileServices 'Microsoft.Storage/storageAccounts/fileServices@2025-01-01' = {
   parent: storageAccount
   name: 'default'
   properties: {
@@ -60,7 +92,7 @@ resource fileServices 'Microsoft.Storage/storageAccounts/fileServices@2024-01-01
   }
 }
 
-resource configShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2024-01-01' = {
+resource configShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2025-01-01' = {
   parent: fileServices
   name: 'config'
   properties: {
@@ -69,8 +101,8 @@ resource configShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2024
   }
 }
 
-// AKS Cluster with 2 node pools
-resource aks 'Microsoft.ContainerService/managedClusters@2025-03-01' = {
+// AKS Cluster with 2 node pools using dedicated VNet subnet
+resource aks 'Microsoft.ContainerService/managedClusters@2025-05-01' = {
   name: aksName
   location: location
   sku: {
@@ -81,7 +113,6 @@ resource aks 'Microsoft.ContainerService/managedClusters@2025-03-01' = {
     type: 'SystemAssigned'
   }
   properties: {
-    kubernetesVersion: '1.32.4'
     dnsPrefix: '${aksName}-dns'
     agentPoolProfiles: [
       // System node pool
@@ -98,6 +129,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2025-03-01' = {
         type: 'VirtualMachineScaleSets'
         enableAutoScaling: false
         maxPods: 250  // Increased pod density with CNI Overlay
+        vnetSubnetID: empty(existingSubnetId) ? aksSubnet.id : existingSubnetId
         nodeLabels: {
           app: 'system'
         }
@@ -105,7 +137,6 @@ resource aks 'Microsoft.ContainerService/managedClusters@2025-03-01' = {
           enableVTPM: false
           enableSecureBoot: false
         }
-        
       }
       // User node pool
       {
@@ -121,12 +152,9 @@ resource aks 'Microsoft.ContainerService/managedClusters@2025-03-01' = {
         osType: 'Linux'
         osSKU: 'Ubuntu'
         maxPods: 250  // Increased pod density with CNI Overlay
+        vnetSubnetID: empty(existingSubnetId) ? aksSubnet.id : existingSubnetId
         nodeLabels: {
           app: 'locust-worker'
-        }
-        securityProfile: {
-          enableVTPM: false
-          enableSecureBoot: false
         }
       }
     ]
@@ -148,16 +176,16 @@ resource aks 'Microsoft.ContainerService/managedClusters@2025-03-01' = {
         }
         backendPoolType: 'nodeIPConfiguration'
       }
-      serviceCidr: '10.1.0.0/16'
-      dnsServiceIP: '10.1.0.10'
+      serviceCidr: '172.16.0.0/16'
+      dnsServiceIP: '172.16.0.10'
       outboundType: 'loadBalancer'
       serviceCidrs: [
-        '10.1.0.0/16'
+        '172.16.0.0/16'
       ]
       ipFamilies: [
         'IPv4'
       ]
-      // Pod subnet for overlay networking (optional but recommended)
+      // Pod subnet for overlay networking
       podCidr: '10.244.0.0/16'
       podCidrs: [
         '10.244.0.0/16'
@@ -168,7 +196,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2025-03-01' = {
 }
 
 resource acrRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(resourceGroup().id, 'acrpull')
+  name: guid(acr.id, aks.id, 'AcrPull')
   scope: acr
   properties: {
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7f951dda-4ed3-4680-a7ca-43fe172d538d') // AcrPull

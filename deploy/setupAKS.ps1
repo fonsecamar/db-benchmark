@@ -12,7 +12,9 @@ param(
     [Parameter(Mandatory = $false)]
     [string]$Suffix = $null,
     [Parameter(Mandatory = $false)]
-    [string]$AksVMSku = $null
+    [string]$AksVMSku = $null,
+    [Parameter(Mandatory = $false)]
+    [string]$SubnetId = $null
 )
 
 Push-Location $PSScriptRoot
@@ -28,6 +30,7 @@ if ($AksName) { $paramArgs += "aksName=$($AksName.ToLower())" }
 if ($StorageAccountName) { $paramArgs += "storageAccountName=$($StorageAccountName.ToLower())" }
 if ($AcrName) { $paramArgs += "acrName=$($AcrName.ToLower())" }
 if ($AksVMSku) { $paramArgs += "aksVMSku=$AksVMSku" }
+if ($SubnetId) { $paramArgs += "existingSubnetId=$SubnetId" }
 
 # 2. Deploy the Bicep template
 $bicepOutput = az deployment group create `
