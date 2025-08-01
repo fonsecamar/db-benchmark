@@ -1,5 +1,6 @@
 import logging
 import time
+import sys
 from typing import Any, Dict, Optional
 from pymongo import MongoClient
 from executors.base_executor import BaseExecutor
@@ -46,6 +47,7 @@ class MongoDBExecutor(BaseExecutor):
 
         update_template = {}
         command_type = command.get('type')
+        batch_size = command.get('batchSize', 1)
         if command_type == 'insert':
             json_template = command.get('document', {})
         elif command_type == 'aggregate':
@@ -79,8 +81,12 @@ class MongoDBExecutor(BaseExecutor):
             param_paths_dict = cache['param_paths_dict']
             param_paths_dict_upd = cache['param_paths_dict_upd']
 
-        param_values = {param['name']: DataManager.generate_param_value(param)[0] for param in parameters}
-        final_command = self._replace_all_params(json_template, param_paths_dict, param_values)
+        bulkInsert = []
+        for i in range(batch_size):
+            param_values = {param['name']: DataManager.generate_param_value(param)[0] for param in parameters}
+            final_command = self._replace_all_params(json_template, param_paths_dict, param_values)
+            bulkInsert.append(final_command)
+        
         upd_command = self._replace_all_params(update_template, param_paths_dict_upd, param_values)
 
         collection_name = command.get('collection')
@@ -92,14 +98,17 @@ class MongoDBExecutor(BaseExecutor):
         sort = None
 
         if command_type == 'insert':
-            db_op = lambda: collection.insert_one(final_command)
+            if batch_size > 1:
+                db_op = lambda: collection.insert_many(bulkInsert, ordered=False)
+            else:
+                db_op = lambda: collection.insert_one(final_command)
         elif command_type == 'aggregate':
-            db_op = lambda: collection.aggregate(final_command)
+            db_op = lambda: collection.aggregate(final_command).to_list()
         elif command_type == 'find':
             projection = command.get('projection', None)
             limit = command.get('limit', 0)
             sort = command.get('sort', None)
-            db_op = lambda: collection.find(filter=final_command, projection=projection, limit=limit, sort=sort)
+            db_op = lambda: collection.find(filter=final_command, projection=projection, limit=limit, sort=sort).to_list()
         elif command_type == 'update':
             db_op = lambda: collection.update_one(final_command, upd_command, upsert=True)
         elif command_type == 'replace':
@@ -116,7 +125,9 @@ class MongoDBExecutor(BaseExecutor):
         try:
             result = db_op()
             total_time = int((time.perf_counter() - start_time) * 1000)
-            self._fire_event('MongoDB', task_name, total_time, response_length=1)
+            logging.debug(f"MongoDB {command_type} command result: {result}")
+            length = sys.getsizeof(result)
+            self._fire_event('MongoDB', task_name, total_time, response_length=length)
         except Exception as e:
             total_time = int((time.perf_counter() - start_time) * 1000)
             self._fire_event('MongoDB-Error', task_name, total_time, exception=e)

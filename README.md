@@ -23,13 +23,9 @@ Currently supported databases:
 - Python 3.8+
 - Docker
 - Azure CLI (for AKS deployment)
+- Bicep (for AKS deployment)
 - kubectl (for AKS deployment)
 - A pre-existing database for testing
-
-Install Python dependencies:
-```pwsh
-pip install -r requirements.txt
-```
 
 ## Configuration
 Workload configuration files are located in the `config` directory.
@@ -42,6 +38,18 @@ For local runs, the `config` folder is mounted directly into the container, so n
 > [!NOTE]
 >
 > If you change a configuration file after Locust has started, you must restart the pods for changes to take effect.
+
+## Running local
+
+1. Install Python dependencies:
+```pwsh
+pip install -r ./src/requirements.txt
+```
+
+2. Run locust
+```pwsh
+locust -f ./src/main.py --class-picker
+```
 
 ## Local Deployment with Docker
 

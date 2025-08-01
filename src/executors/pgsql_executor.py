@@ -42,12 +42,9 @@ class PGSQLExecutor(BaseExecutor):
                 logging.error("Reconnection failed.")
                 return
 
-        param_values = []
-
         command_def = command.get('definition', '')
-        command_type = command.get('type', 'prepared').lower()
-        if command_type not in ['ad-hoc', 'prepared']:
-            command_type = 'ad-hoc'
+        # Check for batch_size parameter (default to 1 for single execution)
+        batch_size = command.get('batchSize', 1)
 
         if task_name not in self.prepared_params:
             exec_command = self._replace_string_default(command_def)
@@ -55,18 +52,23 @@ class PGSQLExecutor(BaseExecutor):
         else:
             exec_command = self.prepared_params[task_name]
 
-        for param in command.get('parameters', []):
-            value, value_type = DataManager.generate_param_value(param)
-            param_values.append(value)
+        # Generate parameter values for batch execution
+        param_values = []
+        for _ in range(batch_size):
+            batch_params = []
+            for param in command.get('parameters', []):
+                value, value_type = DataManager.generate_param_value(param)
+                batch_params.append(value)
+            param_values.append(tuple(batch_params))
 
-        logging.debug(f"Executing PGSQL {command_type} command: {exec_command} with params: {param_values}")
+        logging.debug(f"Executing PGSQL command: {exec_command} with {batch_size} batch params")
 
         start_time = time.perf_counter()
         try:
             with self.connection.cursor() as cursor:
-                cursor.execute(exec_command, tuple(param_values), prepare=(command_type == 'prepared'))
+                cursor.executemany(exec_command, param_values)
             total_time = int((time.perf_counter() - start_time) * 1000)
-            self._fire_event('PGSQL', task_name, total_time, response_length=1)
+            self._fire_event('PGSQL', task_name, total_time, response_length=batch_size)
         except DatabaseError as e:
             total_time = int((time.perf_counter() - start_time) * 1000)
             self._fire_event('PGSQL-Error', task_name, total_time, exception=e)

@@ -15,25 +15,26 @@ class SQLExecutor(BaseExecutor):
 
     def _connect(self) -> None:
         try:
-            if self.connection and not self.connection.closed:
+            if self.connection:
                 self.connection.close()
         except Exception as e:
             logging.exception(f"Error closing existing connection: {e}")
 
         try:
             self.connection = pymssql.connect(
-                server=self.environment.parsed_options.sql_server,
+                host=self.environment.parsed_options.sql_server,
                 user=self.environment.parsed_options.sql_user,
                 password=self.environment.parsed_options.sql_password,
                 database=self.environment.parsed_options.sql_db_name,
-                autocommit=True
+                autocommit=True,
+                appname="locust-worker"
             )
         except Exception as e:
             logging.exception(f"Connection error occurred: {e}")
             self.connection = None
 
     def _disconnect(self) -> None:
-        if self.connection and not self.connection.closed:
+        if self.connection:
             self.connection.close()
             self.connection = None
 

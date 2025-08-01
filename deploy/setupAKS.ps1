@@ -12,8 +12,12 @@ param(
     [Parameter(Mandatory = $false)]
     [string]$Suffix = $null,
     [Parameter(Mandatory = $false)]
-    [string]$AksVMSku = $null
+    [string]$AksVMSku = $null,
+    [Parameter(Mandatory = $false)]
+    [string]$SubnetId = $null
 )
+
+Push-Location $PSScriptRoot
 
 $ImageName = "dbbenchmark:latest"
 
@@ -26,6 +30,7 @@ if ($AksName) { $paramArgs += "aksName=$($AksName.ToLower())" }
 if ($StorageAccountName) { $paramArgs += "storageAccountName=$($StorageAccountName.ToLower())" }
 if ($AcrName) { $paramArgs += "acrName=$($AcrName.ToLower())" }
 if ($AksVMSku) { $paramArgs += "aksVMSku=$AksVMSku" }
+if ($SubnetId) { $paramArgs += "existingSubnetId=$SubnetId" }
 
 # 2. Deploy the Bicep template
 $bicepOutput = az deployment group create `
@@ -68,20 +73,22 @@ kubectl create secret generic azure-file-secret `
     --type=Opaque
 
 # 4. Deploy master-service, master pod, and workers
-kubectl apply -f ../deploy/master-service.yaml
+kubectl apply -f ./master-service.yaml
 
-(Get-Content ../deploy/config-volume.yaml) `
+(Get-Content ./config-volume.yaml) `
     -replace '\$\{RESOURCE_GROUP\}', $ResourceGroupName `
     -replace '\$\{STORAGE_ACCOUNT\}', $StorageAccountName `
     -replace '\$\{SHARE_NAME\}', $ShareName | `
 kubectl apply -f -
 
-(Get-Content ../deploy/master-deployment.yaml) `
+(Get-Content ./master-deployment.yaml) `
     -replace '\$\{IMAGE_NAME\}', "$AcrLogin/$ImageName" | `
 kubectl apply -f -
 
-(Get-Content ../deploy/worker-deployment.yaml) `
+(Get-Content ./worker-deployment.yaml) `
     -replace '\$\{IMAGE_NAME\}', "$AcrLogin/$ImageName" | `
 kubectl apply -f -
+
+Pop-Location
 
 Write-Host "Deployment complete. AKS cluster '$AksName' is ready and workloads are deployed."

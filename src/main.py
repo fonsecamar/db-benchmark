@@ -70,8 +70,8 @@ def create_user_class(class_name: str, load_type: str, workload_name: str, tasks
         fullTaskName = f"{workload_name}_{task_def.taskName}"
         func = create_task_function(task_def.command, fullTaskName)
         setattr(DynamicUser, task_def.taskName, func)
-        logging.info(f"Adding task {task_def.taskName}:weight {task_def.taskWeightPct} to user class {class_name}")
-        for i in range(task_def.taskWeightPct):
+        logging.info(f"Adding task {task_def.taskName}:weight {task_def.taskWeight} to user class {class_name}")
+        for i in range(task_def.taskWeight):
             task_list.append(func)
     
     DynamicUser.tasks = task_list

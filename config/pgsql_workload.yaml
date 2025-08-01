@@ -1,9 +1,10 @@
 type: PGSQL
 tasks:
   - taskName: insert
-    taskWeightPct: 5
+    taskWeight: 5
     command:
       definition: INSERT INTO cart (player_id, ticket_id, ticket_date, contest, numbers) VALUES (@player_id, @ticket_id, @ticket_date, @contest, @numbers)
+      batchSize: 1
       parameters:
         - name: "@player_id"
           type: random_int
@@ -22,7 +23,7 @@ tasks:
           value: "[1,2,3,4,5,6]"
 
   - taskName: update
-    taskWeightPct: 0
+    taskWeight: 0
     command:
       definition: UPDATE cart SET numbers = @numbers WHERE player_id = @player_id
       parameters:
@@ -35,7 +36,7 @@ tasks:
           end: 150000000
 
   - taskName: delete
-    taskWeightPct: 0
+    taskWeight: 0
     command:
       definition: DELETE FROM cart WHERE player_id = @player_id
       parameters:
@@ -45,9 +46,8 @@ tasks:
           end: 150000000
 
   - taskName: select
-    taskWeightPct: 15
+    taskWeight: 15
     command:
-      type: ad-hoc
       definition: SELECT * FROM cart WHERE player_id = @player_id
       parameters:
         - name: "@player_id"
@@ -56,7 +56,7 @@ tasks:
           end: 150000000
 
   - taskName: stored_procedure
-    taskWeightPct: 80
+    taskWeight: 80
     command:
       definition: CALL sp_cart_ins(@player_id, @ticket_id::uuid, @ticket_date, @contest, @numbers::jsonb)
       parameters:

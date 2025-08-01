@@ -1,7 +1,7 @@
 type: SQL
 tasks:
   - taskName: insert
-    taskWeightPct: 5
+    taskWeight: 5
     command:
       type: prepared
       definition: INSERT INTO cart (player_id, ticket_id, ticket_date, contest, numbers) VALUES (@player_id, @ticket_id, @ticket_date, @contest, @numbers)
@@ -23,7 +23,7 @@ tasks:
           value: "[1,2,3,4,5,6]"
 
   - taskName: update
-    taskWeightPct: 0
+    taskWeight: 0
     command:
       definition: UPDATE cart SET numbers = @numbers WHERE player_id = @player_id
       parameters:
@@ -36,7 +36,7 @@ tasks:
           end: 150000000
 
   - taskName: delete
-    taskWeightPct: 0
+    taskWeight: 0
     command:
       definition: DELETE FROM cart WHERE player_id = @player_id
       parameters:
@@ -46,7 +46,7 @@ tasks:
           end: 150000000
 
   - taskName: select
-    taskWeightPct: 15
+    taskWeight: 15
     command:
       type: ad-hoc
       definition: SELECT * FROM cart WHERE player_id = @player_id
@@ -57,7 +57,7 @@ tasks:
           end: 150000000
 
   - taskName: stored_procedure
-    taskWeightPct: 80
+    taskWeight: 80
     command:
       type: stored_procedure
       definition: sp_cart_ins

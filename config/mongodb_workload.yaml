@@ -2,11 +2,12 @@ type: MongoDB
 tasks:
   # Insert Example
   - taskName: insert_example
-    taskWeightPct: 65
+    taskWeight: 65
     command:
       type: insert
       database: lab
       collection: cart
+      batchSize: 1
       parameters:
         - name: "@player_id"
           type: random_int
@@ -32,7 +33,7 @@ tasks:
 
   # Replace Example
   - taskName: replace_example
-    taskWeightPct: 0
+    taskWeight: 0
     command:
       type: replace
       database: lab
@@ -64,7 +65,7 @@ tasks:
 
   # Update Example
   - taskName: update_example
-    taskWeightPct: 0
+    taskWeight: 0
     command:
       type: update
       database: lab
@@ -85,7 +86,7 @@ tasks:
 
   # Delete Example
   - taskName: delete_example
-    taskWeightPct: 0
+    taskWeight: 0
     command:
       type: delete
       database: lab
@@ -100,7 +101,7 @@ tasks:
 
   # Find Example
   - taskName: find_example
-    taskWeightPct: 30
+    taskWeight: 30
     command:
       type: find
       database: lab
@@ -120,7 +121,7 @@ tasks:
 
   # Aggregation Pipeline Example
   - taskName: aggregation_example
-    taskWeightPct: 5
+    taskWeight: 5
     command:
       type: aggregate
       database: lab
