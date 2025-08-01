@@ -4,6 +4,7 @@ tasks:
     taskWeight: 5
     command:
       definition: INSERT INTO cart (player_id, ticket_id, ticket_date, contest, numbers) VALUES (@player_id, @ticket_id, @ticket_date, @contest, @numbers)
+      batchSize: 1
       parameters:
         - name: "@player_id"
           type: random_int
@@ -47,7 +48,6 @@ tasks:
   - taskName: select
     taskWeight: 15
     command:
-      type: ad-hoc
       definition: SELECT * FROM cart WHERE player_id = @player_id
       parameters:
         - name: "@player_id"

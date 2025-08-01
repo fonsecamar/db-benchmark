@@ -25,6 +25,10 @@ class DataManager:
             return datetime.strptime(datetime.now(timezone.utc).strftime(format), format), "datetime"
         elif param_type == "datetimeiso":
             return datetime.now(timezone.utc).isoformat(), "datetime"
+        elif param_type == "unix_timestamp":
+            return int(datetime.now(timezone.utc).timestamp()), "int"
+        elif param_type == "unix_timestamp_as_string":
+            return str(int(datetime.now(timezone.utc).timestamp())), "varchar(50)"
         elif param_type == "random_int":
             return random.randint(param.get('start'), param.get('end')), "int"
         elif param_type == "random_int_as_string":
