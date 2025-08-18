@@ -14,7 +14,7 @@ class TaskConfig:
     @staticmethod
     def from_dict(data: dict):
         return TaskConfig(
-            taskWeight=data.get("taskWeight"),
+            taskWeight=data.get("taskWeight", 1),
             taskName=data.get("taskName"),
             command=data.get("command", {})
         )

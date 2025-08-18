@@ -21,7 +21,7 @@ class DataManager:
         elif param_type == "date":
             return datetime.now(timezone.utc).strftime("%Y-%m-%d"), "date"
         elif param_type == "datetime":
-            format = param.get('format', "%Y-%m-%dT%H:%M:%SZ")
+            format = param.get('format', "%Y-%m-%dT%H:%M:%S.%fZ")
             return datetime.strptime(datetime.now(timezone.utc).strftime(format), format), "datetime"
         elif param_type == "datetimeiso":
             return datetime.now(timezone.utc).isoformat(), "datetime"
