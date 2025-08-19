@@ -23,7 +23,13 @@ class TaskConfig:
 class Settings:
     workloadName: str
     type: str
+    runStartUp: bool
     tasks: List[TaskConfig]
+
+def get_config_path() -> Path:
+    if Path.cwd() == Path('/app'):
+        return Path('/app/config')
+    return Path(__file__).parent.parent / 'config/'
 
 def load_tasks(config: dict) -> List[TaskConfig]:
     tasks = []
@@ -40,12 +46,9 @@ def load_tasks(config: dict) -> List[TaskConfig]:
 
 def init_settings() -> List[Settings]:
 
-    if Path.cwd() == Path('/app'):
-        config_dir = Path('/app/config')
-    else:
-        config_dir = Path(__file__).parent.parent / 'config/'
-    
+    config_dir = get_config_path()
     config_dir = config_dir.resolve()
+
     logging.info(f"Loading settings from all JSON and YAML files in {config_dir}")
     settings_list: List[Settings] = []
     if not config_dir.exists():
@@ -63,10 +66,12 @@ def init_settings() -> List[Settings]:
                     config = yaml.safe_load(file)
             workload_name = config_file.stem
             config_type = config.get("type", "")
+            runStartUp = config.get("runStartUp", False)
             tasks = load_tasks(config)
             settings_list.append(Settings(
                 workloadName=workload_name,
                 type=config_type.upper(),
+                runStartUp=runStartUp,
                 tasks=tasks
             ))
         except Exception as e:

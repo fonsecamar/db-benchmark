@@ -1,14 +1,16 @@
 import pymssql
 import logging
 import time
+import settings
 from typing import Any, Dict, Optional
 from executors.base_executor import BaseExecutor
 from datamanager import DataManager
 from pymssql import DatabaseError
+from pathlib import Path
 
 class SQLExecutor(BaseExecutor):
-    def __init__(self, environment: Any, workload_name: str):
-        super().__init__(environment, workload_name)
+    def __init__(self, environment: Any):
+        super().__init__(environment)
         self.connection: Optional[pymssql.Connection] = None
         self._connect()
         self.prepared_params: Dict[str, str] = {}
@@ -37,6 +39,26 @@ class SQLExecutor(BaseExecutor):
         if self.connection:
             self.connection.close()
             self.connection = None
+
+    def run_startup(self, workloadName: str) -> None:
+        
+        try:
+            startup = Path(settings.get_config_path()) / f"{workloadName}.sql"
+
+            logging.info(f"Executing startup script file: {startup}")
+
+            with open(startup, 'r', encoding='utf-8') as file:
+                sql_commands = file.read()
+
+            with self.connection.cursor(as_dict=True) as cursor:
+                for command in sql_commands.split(';'):
+                    command = command.strip()
+                    if command:
+                        cursor.execute(command)
+
+            self._disconnect()
+        except Exception as e:
+            logging.error(f"Error occurred while executing startup script file: {startup}. Exception: {e}")
 
     def execute(self, command: Dict, task_name: str) -> None:
         if self.connection is None:

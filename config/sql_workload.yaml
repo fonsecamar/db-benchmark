@@ -1,4 +1,5 @@
 type: SQL
+runStartUp: true
 tasks:
   - taskName: insert
     taskWeight: 5
