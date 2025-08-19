@@ -9,8 +9,8 @@ from datamanager import DataManager
 logging.getLogger("pymongo").setLevel(logging.INFO)
 
 class MongoDBExecutor(BaseExecutor):
-    def __init__(self, environment: Any, workload_name: str):
-        super().__init__(environment, workload_name)
+    def __init__(self, environment: Any):
+        super().__init__(environment)
         self.client: Optional[MongoClient] = None
         self.db = None
         self._connect()

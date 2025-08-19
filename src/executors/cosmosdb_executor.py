@@ -14,8 +14,8 @@ logger = logging.getLogger('urllib3')
 logger.setLevel(logging.WARNING)
 
 class CosmosDBExecutor(BaseExecutor):
-    def __init__(self, environment: Any, workload_name: str):
-        super().__init__(environment, workload_name)
+    def __init__(self, environment: Any):
+        super().__init__(environment)
         self.client: Optional[CosmosClient] = None
         self._connect()
         self._param_map_cache: Dict[str, Dict] = {}
