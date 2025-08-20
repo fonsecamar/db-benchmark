@@ -1,5 +1,5 @@
 type: SQL
-runStartUp: true
+runStartUpFrequency: Never
 tasks:
   - taskName: insert
     taskWeight: 5

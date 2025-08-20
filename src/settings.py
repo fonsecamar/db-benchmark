@@ -1,9 +1,15 @@
 from typing import List, Dict, Any
 from dataclasses import dataclass
 from pathlib import Path
+from enum import Enum
 import json
 import logging
 import yaml
+
+class StartUpFrequency(Enum):
+    NEVER = "never"
+    ONCE = "once"
+    ALWAYS = "always"
 
 @dataclass
 class TaskConfig:
@@ -23,7 +29,7 @@ class TaskConfig:
 class Settings:
     workloadName: str
     type: str
-    runStartUp: bool
+    runStartUpFrequency: StartUpFrequency
     tasks: List[TaskConfig]
 
 def get_config_path() -> Path:
@@ -66,12 +72,20 @@ def init_settings() -> List[Settings]:
                     config = yaml.safe_load(file)
             workload_name = config_file.stem
             config_type = config.get("type", "")
-            runStartUp = config.get("runStartUp", False)
+            
+            run_startup_frequency_value = config.get("runStartUpFrequency", "Never")
+            frequency_mapping = {
+                    "never": StartUpFrequency.NEVER,
+                    "once": StartUpFrequency.ONCE,
+                    "always": StartUpFrequency.ALWAYS
+                }
+            run_startup_frequency = frequency_mapping.get(run_startup_frequency_value.lower(),StartUpFrequency.NEVER)
+
             tasks = load_tasks(config)
             settings_list.append(Settings(
                 workloadName=workload_name,
                 type=config_type.upper(),
-                runStartUp=runStartUp,
+                runStartUpFrequency=run_startup_frequency,
                 tasks=tasks
             ))
         except Exception as e:

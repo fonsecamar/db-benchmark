@@ -6,7 +6,7 @@ from executors.mongodb_executor import MongoDBExecutor
 from executors.cosmosdb_executor import CosmosDBExecutor
 #from executors.cassandra_executor import CassandraExecutor
 import settings
-from settings import Settings
+from settings import Settings, StartUpFrequency
 import logging
 from typing import Any, Callable
 
@@ -47,6 +47,8 @@ def on_test_start(environment, **kwargs):
             if uc.runStartUp:
                 logging.info(f"Running startup for user class: {uc.__name__}")
                 uc(environment).run_startup()
+            else:
+                logging.info(f"Skipping startup for user class: {uc.__name__}")
 
 def get_executor(load_type: str, environment: Any):
     if load_type == "SQL":
@@ -74,7 +76,7 @@ def create_user_class(class_name: str, workload_settings: Settings):
 
     class DynamicUser(User):
 
-        runStartUp = workload_settings.runStartUp
+        runStartUp = workload_settings.runStartUpFrequency != StartUpFrequency.NEVER
 
         def __init__(self, environment, *args, **kwargs):
             super().__init__(environment, *args, **kwargs)
@@ -82,8 +84,9 @@ def create_user_class(class_name: str, workload_settings: Settings):
             self.workload_settings = workload_settings
 
         def run_startup(self):
-            if self.executor and self.workload_settings.runStartUp:
+            if self.executor and self.__class__.runStartUp:
                 self.executor.run_startup(self.workload_settings.workloadName)
+                self.__class__.runStartUp = self.workload_settings.runStartUpFrequency == StartUpFrequency.ALWAYS
 
         def on_stop(self):
             super().on_stop()
