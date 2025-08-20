@@ -1,0 +1,112 @@
+type: SQL
+tasks:
+  - taskName: Inventory_Lookup
+    taskWeight: 10
+    command:
+      type: stored_procedure
+      definition: usp_InventoryLookup
+      parameters:
+        - name: "@ProductID"
+          type: random_int
+          start: 1
+          end: 999
+  - taskName: Inventory_LowStockAlert
+    taskWeight: 10
+    command:
+      type: stored_procedure
+      definition: usp_LowStockAlert
+      parameters:
+        - name: "@Threshold"
+          type: random_int
+          start: 1
+          end: 10
+  - taskName: Inventory_ProductLocationLookup
+    taskWeight: 10
+    command:
+      type: stored_procedure
+      definition: usp_ProductLocationLookup
+      parameters:
+        - name: "@ProductID"
+          type: random_int
+          start: 1
+          end: 999
+  - taskName: Inventory_WarehouseCapacityCheck
+    taskWeight: 10
+    command:
+      type: stored_procedure
+      definition: usp_WarehouseCapacityCheck
+      parameters:
+        - name: "@MinAvailability"
+          type: random_int
+          start: 1
+          end: 10
+  - taskName: Inventory_AgingReport
+    taskWeight: 10
+    command:
+      type: stored_procedure
+      definition: usp_InventoryAgingReport
+      parameters:
+        - name: "@DaysThreshold"
+          type: random_int
+          start: 1
+          end: 50
+  - taskName: Inventory_StockReplenishment
+    taskWeight: 10
+    command:
+      type: prepared 
+      definition: |
+        DECLARE @ProductID INT, @LocationID SMALLINT, @Qty SMALLINT; 
+        SELECT @Qty = RAND()*100;
+        SELECT TOP 1 @ProductID = ProductID, @LocationID = LocationID FROM Production.ProductInventory ORDER BY NEWID();
+        EXEC usp_StockReplenishment @ProductID, @LocationID , @Qty
+  - taskName: Inventory_ProductMovementLog
+    taskWeight: 10
+    command:
+      type: prepared 
+      definition: |
+        DECLARE @ProductID INT, @OrderID INT, @QuantityMoved INT; 
+        SELECT TOP 1 @ProductID = SOD.ProductID, @OrderID = SOD.SalesOrderID, @QuantityMoved = SOD.OrderQty 
+        FROM Sales.SalesOrderDetail SOD 
+            INNER JOIN Sales.SalesOrderHeader SOH 
+            on SOD.SalesOrderID = SOH.SalesOrderID 
+        WHERE Status=1
+        ORDER BY NEWID();
+        EXECUTE usp_ProductMovementLog @ProductID, @OrderID, @QuantityMoved, 0.00;
+  - taskName: Inventory_CycleCountAudit
+    taskWeight: 10
+    command:
+      type: prepared
+      definition: |
+        DECLARE @ProductID INT, @LocationID SMALLINT, @PhysicalCount SMALLINT; 
+        SELECT @PhysicalCount = RAND()*100
+        SELECT TOP 1 @ProductID = ProductID, @LocationID = LocationID FROM Production.ProductInventory ORDER BY NEWID();
+        EXEC usp_CycleCountAudit @ProductID, @LocationID , @PhysicalCount
+  - taskName: Inventory_ReceivingLog
+    taskWeight: 10
+    command:
+      type: prepared
+      definition: |
+        DECLARE @ProductID INT, @OrderID INT, @ReceivedQty INT; 
+        SELECT TOP 1 @ProductID = SOD.ProductID, @OrderID = SOD.SalesOrderID, @ReceivedQty = SOD.OrderQty 
+        FROM Sales.SalesOrderDetail SOD 
+            INNER JOIN Sales.SalesOrderHeader SOH 
+            on SOD.SalesOrderID = SOH.SalesOrderID 
+        WHERE Status=1
+        ORDER BY NEWID();
+        EXECUTE usp_ReceivingLog @ProductID, @OrderID, @ReceivedQty, 0.00;
+  - taskName: Inventory_ShipmentLog
+    taskWeight: 10
+    command:
+      type: prepared
+      definition: |
+        DECLARE @ProductID INT, @OrderID INT, @ShippedQty INT; 
+        SELECT TOP 1 @ProductID = SOD.ProductID, @OrderID = SOD.SalesOrderID, @ShippedQty = SOD.OrderQty 
+        FROM Sales.SalesOrderDetail SOD 
+            INNER JOIN Sales.SalesOrderHeader SOH 
+            on SOD.SalesOrderID = SOH.SalesOrderID 
+        WHERE Status=1
+        ORDER BY NEWID();
+        IF (@ProductID IS NOT NULL) AND (@OrderID IS NOT NULL)
+          BEGIN
+            EXECUTE usp_ShipmentLog @ProductID, @OrderID, @ShippedQty, 0.00;
+          END

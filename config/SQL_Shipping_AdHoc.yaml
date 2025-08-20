@@ -1,0 +1,197 @@
+type: SQL
+tasks:
+  - taskName: shipping_BrowseProductByCategory
+    taskWeight: 10
+    command:
+      type: prepared 
+      definition: |
+        SELECT ProductID, Name, ListPrice, ProductSubcategoryID
+        FROM Production.Product
+        WHERE ProductSubcategoryID IN (SELECT ProductSubCategoryID FROM Production.ProductSubcategory WHERE ProductCategoryID = @CategoryID)
+      parameters:
+        - name: "@CategoryID"
+          type: random_int
+          start: 1
+          end: 4
+  - taskName: shipping_BrowseProductBySubCategory
+    taskWeight: 10
+    command:
+      type: prepared 
+      definition: |
+        DECLARE @SubCategoryID INT; 
+        SELECT ProductID, Name, ListPrice, ProductSubcategoryID
+        FROM Production.Product
+        WHERE ProductSubcategoryID = @SubCategoryID
+      parameters:
+        - name: "@SubCategoryID"
+          type: random_int
+          start: 1
+          end: 37
+  - taskName: shipping_BrowseProductByKeyword
+    taskWeight: 10
+    command:
+      type: prepared 
+      definition: |
+        SELECT ProductID, Name, ListPrice
+        FROM Production.Product
+        WHERE Name LIKE '%' + @SearchTerm + '%';
+      parameters:
+        - name: "@SearchTerm"
+          type: random_list
+          values: ["Bikes", "Chain", "Lock", "Washer", "External","Flat","Frame","Front","Head","Headlight","internal","Jersey","Men's","Montain","Nut","Pump","Road","Shorts","Sports","Tire","Touring","Women's"]
+  - taskName: shipping_ViewProductDetails
+    taskWeight: 10
+    command:
+      type: prepared 
+      definition: |
+        DECLARE @ProductID INT; 
+        SELECT TOP 1 @ProductID = ProductID
+        FROM Production.Product 
+        WHERE FinishedGoodsFlag=1
+        ORDER BY NEWID();        
+        SELECT p.ProductID, p.Name, p.ListPrice, pm.Name AS Model, ps.Name AS Subcategory
+        FROM Production.Product p
+        LEFT JOIN Production.ProductModel pm ON p.ProductModelID = pm.ProductModelID
+        LEFT JOIN Production.ProductSubcategory ps ON p.ProductSubcategoryID = ps.ProductSubcategoryID
+        WHERE p.ProductID = @ProductID;
+  - taskName: shipping_AddItemsToCart
+    taskWeight: 10
+    command:
+      type: prepared 
+      definition: |
+        declare @temp UNIQUEIDENTIFIER = NEWID();
+        DECLARE @CartID varchar(100) = cast(@temp as varchar(100) )
+        DECLARE @ItemCount INT = FLOOR(RAND() * 5) + 1;
+        DECLARE @Counter INT = 0;
+        WHILE @Counter < @ItemCount
+        BEGIN
+            DECLARE @ProductID INT;
+            SELECT TOP 1 @ProductID = ProductID FROM Production.Product ORDER BY NEWID();
+            DECLARE @Quantity INT = FLOOR(RAND() * 5) + 1;
+            INSERT INTO Sales.ShoppingCartItem (ShoppingCartID, ProductID, Quantity, DateCreated)
+            VALUES (@CartID, @ProductID, @Quantity, GETDATE());
+            SET @Counter = @Counter + 1;
+        END
+  - taskName: shipping_UpdateQuantityinCart
+    taskWeight: 2
+    command:
+      type: prepared 
+      definition: |
+        DECLARE @CartID varchar(100);
+        DECLARE @ProductID INT;
+        SELECT TOP 1 @CartID = ShoppingCartID, @ProductID = ProductID FROM Sales.ShoppingCartItem ORDER BY NEWID();
+        /* select * from Sales.ShoppingCartItem WHERE ShoppingCartID = @CartID AND ProductID = @ProductID; */
+        DECLARE @NewQuantity INT = FLOOR(RAND() * 5) + 1;
+        UPDATE Sales.ShoppingCartItem
+        SET Quantity = @NewQuantity,
+            ModifiedDate = getdate()
+        WHERE ShoppingCartID = @CartID AND ProductID = @ProductID;
+        /* select * from Sales.ShoppingCartItem WHERE ShoppingCartID = @CartID AND ProductID = @ProductID; */ 
+  - taskName: shipping_DeleteItemInCart
+    taskWeight: 2
+    command:
+      type: prepared 
+      definition: |
+        DECLARE @CartID varchar(100);
+        DECLARE @ProductID INT;
+        SELECT TOP 1 @CartID = ShoppingCartID, @ProductID = ProductID FROM Sales.ShoppingCartItem ORDER BY NEWID();
+        /* select * from Sales.ShoppingCartItem WHERE ShoppingCartID = @CartID AND ProductID = @ProductID; */
+        DELETE Sales.ShoppingCartItem
+        WHERE ShoppingCartID = @CartID AND ProductID = @ProductID;
+        /* select * from Sales.ShoppingCartItem WHERE ShoppingCartID = @CartID AND ProductID = @ProductID; */ 
+  - taskName: shipping_ViewCartContents
+    taskWeight: 10
+    command:
+      type: prepared 
+      definition: |
+        DECLARE @CartID varchar(100);
+        SELECT TOP 1 @CartID = ShoppingCartID FROM Sales.ShoppingCartItem ORDER BY NEWID();
+        SELECT sci.ProductID, p.Name, sci.Quantity, p.ListPrice
+        FROM Sales.ShoppingCartItem sci
+        JOIN Production.Product p ON sci.ProductID = p.ProductID
+        WHERE sci.ShoppingCartID = @CartID;
+  - taskName: shipping_ViewCartTotal
+    taskWeight: 10
+    command:
+      type: prepared 
+      definition: |
+        DECLARE @CartID varchar(100);
+        SELECT TOP 1 @CartID = ShoppingCartID FROM Sales.ShoppingCartItem ORDER BY NEWID();
+        SELECT SUM(p.ListPrice * sci.Quantity) AS CartTotal
+        FROM Sales.ShoppingCartItem sci
+        JOIN Production.Product p ON sci.ProductID = p.ProductID
+        WHERE sci.ShoppingCartID = @CartID;
+  - taskName: shipping_CartCheckout
+    taskWeight: 4
+    command:
+      type: prepared 
+      definition: |
+        DECLARE @CartID varchar(100);
+        SELECT TOP 1 @CartID = ShoppingCartID FROM Sales.ShoppingCartItem ORDER BY NEWID();
+
+        DECLARE @OrderDate DATETIME = GETDATE();
+        DECLARE @DueDate DATETIME = DATEADD(DAY, 7, @OrderDate);
+        DECLARE @ShipDate DATETIME = DATEADD(DAY, 2, @OrderDate);
+        DECLARE @ShipMethodID INT = 1; -- Default ship method
+        DECLARE @BillToAddressID INT = 1; -- Default billing address
+        DECLARE @ShipToAddressID INT = 1; -- Default shipping address
+        DECLARE @AccountNumber NVARCHAR(15) -- = '10-4020-000676'; -- Sample account number
+        DECLARE @CreditCardID INT = NULL;
+        DECLARE @SubTotal MONEY = 0;
+        DECLARE @TaxAmt MONEY = 0;
+        DECLARE @Freight MONEY = 0;
+        DECLARE @SalesOrderID INT;
+
+        BEGIN TRAN
+            /* retrieve account number from CustomerID */
+            SELECT @AccountNumber = AccountNumber 
+            FROM Sales.Customer
+            WHERE CustomerID = @CustomerID
+
+            /* create sales order */
+            INSERT INTO Sales.SalesOrderHeader (
+                RevisionNumber, OrderDate, DueDate, ShipDate, Status, OnlineOrderFlag,
+                CustomerID, BillToAddressID, ShipToAddressID, ShipMethodID,
+                AccountNumber, CreditCardID, SubTotal, TaxAmt, Freight
+            )
+            VALUES (
+                1, @OrderDate, @DueDate, @ShipDate, 1, 1,
+                @CustomerID, @BillToAddressID, @ShipToAddressID, @ShipMethodID,
+                @AccountNumber, @CreditCardID, @SubTotal, @TaxAmt, @Freight
+            );
+
+            SELECT @SalesOrderID = SCOPE_IDENTITY();
+
+            /* Then insert order details */
+            INSERT INTO Sales.SalesOrderDetail (
+                SalesOrderID, ProductID, OrderQty, UnitPrice, UnitPriceDiscount, SpecialOfferID
+            )
+            SELECT 
+                @SalesOrderID, sci.ProductID, sci.Quantity, p.ListPrice, 0,
+                sop.SpecialOfferID
+            FROM Sales.ShoppingCartItem sci
+            JOIN Production.Product p ON sci.ProductID = p.ProductID
+            JOIN Sales.SpecialOfferProduct sop ON sci.ProductID = sop.ProductID
+            WHERE sci.ShoppingCartID = @CartID;
+
+            /* delete entries from Cart */
+            DELETE FROM Sales.ShoppingCartItem
+            WHERE ShoppingCartID = @CartID;
+
+        COMMIT TRAN
+
+      parameters:
+        - name: "@CustomerID"
+          type: random_int
+          start: 11000
+          end: 30000
+  - taskName: shipping_AbandonCart
+    taskWeight: 4
+    command:
+      type: prepared 
+      definition: |
+        DECLARE @CartID varchar(100);
+        SELECT TOP 1 @CartID = ShoppingCartID FROM Sales.ShoppingCartItem WHERE DATEDIFF(mi,ModifiedDate, GETDATE()) > 15 ORDER BY NEWID();
+        /* delete entries from Cart */
+        DELETE FROM Sales.ShoppingCartItem
+        WHERE ShoppingCartID = @CartID;

@@ -1,0 +1,110 @@
+type: SQL
+tasks:
+  - taskName: shipping_BrowseProductByCategory
+    taskWeight: 10
+    command:
+      type: stored_procedure
+      definition: usp_BrowseProductByCategory
+      parameters:
+        - name: "@CategoryID"
+          type: random_int
+          start: 1
+          end: 4
+  - taskName: shipping_BrowseProductBySubCategory
+    taskWeight: 10
+    command:
+      type: stored_procedure 
+      definition: usp_BrowseProductBySubCategory
+      parameters:
+        - name: "@SubCategoryID"
+          type: random_int
+          start: 1
+          end: 37
+  - taskName: shipping_BrowseProductByKeyword
+    taskWeight: 10
+    command:
+      type: stored_procedure
+      definition: usp_BrowseProductByKeyword
+      parameters:
+        - name: "@SearchTerm"
+          type: random_list
+          values: ["Bikes", "Chain", "Lock", "Washer", "External","Flat","Frame","Front","Head","Headlight","internal","Jersey","Men's","Montain","Nut","Pump","Road","Shorts","Sports","Tire","Touring","Women's"]
+  - taskName: shipping_ViewProductDetails
+    taskWeight: 10
+    command:
+      type: stored_procedure
+      definition: usp_ViewProductDetails
+      parameters:
+        - name: "@ProductID"
+          type: random_int
+          start: 1
+          end: 999
+  - taskName: shipping_AddItemsToCart
+    taskWeight: 10
+    command:
+      type: stored_procedure
+      definition: usp_AddItemsToCart
+      parameters:
+        - name: "@CartID"
+          type: random_guid
+        - name: "@ItemCount"
+          type: random_int
+          start: 1
+          end: 5
+  - taskName: shipping_UpdateQuantityinCart
+    taskWeight: 2
+    command:
+      type: prepared 
+      definition: |
+        DECLARE @CartID varchar(100);
+        DECLARE @ProductID INT;
+        SELECT TOP 1 @CartID = ShoppingCartID, @ProductID = ProductID FROM Sales.ShoppingCartItem ORDER BY NEWID();
+        execute usp_UpdateQuantityinCart  @CartID, @ProductID
+  - taskName: shipping_DeleteItemInCart
+    taskWeight: 2
+    command:
+      type: prepared 
+      definition: |
+        DECLARE @CartID varchar(100);
+        DECLARE @ProductID INT;
+        SELECT TOP 1 @CartID = ShoppingCartID, @ProductID = ProductID FROM Sales.ShoppingCartItem ORDER BY NEWID();
+        execute usp_DeleteIteminCart  @CartID, @ProductID
+  - taskName: shipping_ViewCartContents
+    taskWeight: 10
+    command:
+      type: prepared 
+      definition: |
+        DECLARE @CartID varchar(100);
+        SELECT TOP 1 @CartID = ShoppingCartID FROM Sales.ShoppingCartItem ORDER BY NEWID();
+        execute usp_ViewCartContents @CartID
+  - taskName: shipping_ViewCartTotal
+    taskWeight: 10
+    command:
+      type: prepared 
+      definition: |
+        DECLARE @CartID varchar(100);
+        SELECT TOP 1 @CartID = ShoppingCartID FROM Sales.ShoppingCartItem ORDER BY NEWID();
+        execute usp_ViewCartTotal @CartID
+  - taskName: shipping_CartCheckout
+    taskWeight: 4
+    command:
+      type: prepared 
+      definition: |
+        DECLARE @CartID varchar(100);
+        SELECT TOP 1 @CartID = ShoppingCartID FROM Sales.ShoppingCartItem ORDER BY NEWID();
+        execute usp_CartCheckout @CartID
+      parameters:
+        - name: "@CustomerID"
+          type: random_int
+          start: 11000
+          end: 30000
+  - taskName: shipping_AbandonCart
+    taskWeight: 4
+    command:
+      type: prepared 
+      definition: |
+        DECLARE @CartID varchar(100);
+        SELECT TOP 1 @CartID = ShoppingCartID FROM Sales.ShoppingCartItem WHERE DATEDIFF(mi,ModifiedDate, GETDATE()) > 15 ORDER BY NEWID();
+        IF @CartID IS NOT NULL
+            execute usp_AbandonCart @CartID
+            
