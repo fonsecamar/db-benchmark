@@ -43,7 +43,7 @@ class SQLExecutor(BaseExecutor):
     def run_startup(self, workloadName: str) -> None:
         
         try:
-            startup = Path(settings.get_config_path()) / f"{workloadName}.sql"
+            startup = Path(settings.get_config_path()) / f"{workloadName}_startup.sql"
 
             logging.info(f"Executing startup script file: {startup}")
 

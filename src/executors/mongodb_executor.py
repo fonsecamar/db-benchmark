@@ -1,10 +1,13 @@
 import logging
 import time
 import sys
+import settings
+import yaml
 from typing import Any, Dict, Optional
 from pymongo import MongoClient
 from executors.base_executor import BaseExecutor
 from datamanager import DataManager
+from pathlib import Path
 
 logging.getLogger("pymongo").setLevel(logging.INFO)
 
@@ -33,6 +36,48 @@ class MongoDBExecutor(BaseExecutor):
             self.client.close()
             self.client = None
             self.db = None
+    
+    def run_startup(self, workloadName: str) -> None:
+        
+        try:
+            startup = Path(settings.get_config_path()) / f"{workloadName}_startup.yaml"
+
+            logging.info(f"Executing startup script file: {startup}")
+
+            with open(startup, 'r', encoding='utf-8') as file:
+                mongoConfig = yaml.safe_load(file)
+
+            for db in mongoConfig.get('databases', []):
+                db_name = db.get('name')
+                collections = db.get('collections', [])
+                for coll in collections:
+                    coll_name = coll.get('name')
+                    database = self.client.get_database(db_name)
+                    
+                    if coll_name not in database.list_collection_names():
+                        dbcoll = database.create_collection(coll_name)
+                    else:
+                        dbcoll = database.get_collection(coll_name)
+                    
+                    shard_key = coll.get('shardKey')
+                    if shard_key:
+                        admin_db = self.client['admin']
+                        admin_db.command({
+                            'shardCollection': f'{db_name}.{coll_name}',
+                            'key': {shard_key: 'hashed'}
+                        })
+
+                    indexes = coll.get('indexes', [])
+                    for index in indexes:
+                        index_name = index.get('name')
+                        keys = index.get('keys', {})
+                        options = index.get('options', {})
+
+                        dbcoll.create_index(keys, name=index_name, **options)
+
+            self._disconnect()
+        except Exception as e:
+            logging.error(f"Error occurred while executing startup script file: {startup}. Exception: {e}")
 
     def execute(self, command: Dict, task_name: str) -> None:
         if self.client is None:

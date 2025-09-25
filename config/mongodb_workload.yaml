@@ -1,4 +1,5 @@
 type: MongoDB
+runStartUpFrequency: Once
 tasks:
   # Insert Example
   - taskName: insert_example
