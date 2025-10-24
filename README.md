@@ -13,6 +13,7 @@ Currently supported databases:
 - Azure Cosmos DB for NoSQL
 - Azure Cosmos DB for MongoDB (including native MongoDB)
 - Azure Database for PostgreSQL Flexible Server
+- Azure Managed Instance for Apache Cassandra (including native Apache Cassandra)
 
 ## About Locust
 
@@ -20,11 +21,11 @@ Currently supported databases:
 
 ## Installation Requirements
 
-- Python 3.8+
-- Docker
-- Azure CLI (for AKS deployment)
-- Bicep (for AKS deployment)
-- kubectl (for AKS deployment)
+- Python 3.8+ (local execution)
+- Docker (local Docker deployment)
+- Azure CLI (AKS deployment)
+- Bicep (AKS deployment)
+- kubectl (AKS deployment)
 - A pre-existing database for testing
 
 ## Configuration

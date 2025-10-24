@@ -8,20 +8,23 @@ tasks:
       collection: cart
       parameters:
         - name: "@player_id"
-          type: random_int_as_string
+          type: random_int
           start: 1
           end: 150000000
+          as: string
         - name: "@ticket_id"
           type: guid
+          as: string
         - name: "@ticket_date"
-          type: datetimeISO
+          type: datetime
         - name: "@contest"
           type: random_int
           start: 1
           end: 1000
         - name: "@numbers"
-          type: constant_string
+          type: constant
           value: "[1,2,3,4,5,6]"
+          as: string
       document:
         player_id: "@player_id"
         id: "@ticket_id"
@@ -45,20 +48,23 @@ tasks:
       collection: cart
       parameters:
         - name: "@player_id"
-          type: random_int_as_string
+          type: random_int
           start: 1
           end: 150000000
+          as: string
         - name: "@ticket_id"
           type: guid
+          as: string
         - name: "@ticket_date"
-          type: datetimeISO
+          type: datetime
         - name: "@contest"
           type: random_int
           start: 1
           end: 1000
         - name: "@numbers"
-          type: constant_string
+          type: constant
           value: "[1,2,3,4,5,6]"
+          as: string
       document:
         player_id: "@player_id"
         id: "@ticket_id"
@@ -81,11 +87,13 @@ tasks:
       id: "@ticket_id"
       parameters:
         - name: "@player_id"
-          type: random_int_as_string
+          type: random_int
           start: 1
           end: 150000000
+          as: string
         - name: "@ticket_id"
           type: guid
+          as: string
 
   - taskName: point_read1
     taskWeight: 15
@@ -98,11 +106,13 @@ tasks:
       id: "@ticket_id"
       parameters:
         - name: "@player_id"
-          type: random_int_as_string
+          type: random_int
           start: 1
           end: 150000000
+          as: string
         - name: "@ticket_id"
           type: guid
+          as: string
 
   - taskName: select1
     taskWeight: 20
@@ -113,6 +123,7 @@ tasks:
       query: 'SELECT * FROM cart c WHERE c.player_id = @player_id'
       parameters:
         - name: "@player_id"
-          type: random_int_as_string
+          type: random_int
           start: 1
           end: 150000000
+          as: string

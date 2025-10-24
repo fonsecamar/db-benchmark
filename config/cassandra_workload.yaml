@@ -1,0 +1,69 @@
+type: Cassandra
+tasks:
+  - taskName: insert_user
+    taskWeight: 1
+    command:
+      definition: "INSERT INTO benchmark.users (id, name, email, created_at) VALUES (@user_id, @name, @email, @created_at)"
+      parameters:
+        - name: "@user_id"
+          type: guid
+        - name: "@name"
+          type: faker.name
+        - name: "@email"
+          type: faker.email
+        - name: "@created_at"
+          type: datetime
+      consistencyLevel: ONE
+
+  - taskName: select_user_by_id
+    taskWeight: 1
+    command:
+      definition: "SELECT * FROM benchmark.users WHERE id = @user_id"
+      parameters:
+        - name: "@user_id"
+          type: guid
+      consistencyLevel: ONE
+
+  - taskName: update_user_email
+    taskWeight: 1
+    command:
+      definition: "UPDATE benchmark.users SET email = @new_email WHERE id = @user_id"
+      parameters:
+        - name: "@new_email"
+          type: faker.email
+        - name: "@user_id"
+          type: guid
+
+  - taskName: delete_user
+    taskWeight: 1
+    command:
+      definition: "DELETE FROM benchmark.users WHERE id = @user_id"
+      parameters:
+        - name: "@user_id"
+          type: guid
+
+  - taskName: select_users_by_name
+    taskWeight: 1
+    command:
+      definition: "SELECT * FROM benchmark.users WHERE name = @name ALLOW FILTERING"
+      parameters:
+        - name: "@name"
+          type: faker.name
+
+  - taskName: batch_insert_users
+    taskWeight: 1
+    command:
+      definition: "BEGIN BATCH INSERT INTO benchmark.users (id, name, email, created_at) VALUES (@user_id, @name, @email, @created_at); INSERT INTO benchmark.user_stats (user_id, login_count) VALUES (@user_id, @login_count); APPLY BATCH"
+      parameters:
+        - name: "@user_id"
+          type: guid
+        - name: "@name"
+          type: faker.name
+        - name: "@email"
+          type: faker.email
+        - name: "@created_at"
+          type: datetime
+        - name: "@login_count"
+          type: random_int
+          start: 0
+          end: 100

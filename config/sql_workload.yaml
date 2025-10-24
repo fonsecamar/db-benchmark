@@ -20,8 +20,9 @@ tasks:
           start: 1
           end: 1000
         - name: "@numbers"
-          type: constant_string
+          type: constant
           value: "[1,2,3,4,5,6]"
+          as: string
 
   - taskName: update
     taskWeight: 0
@@ -29,8 +30,9 @@ tasks:
       definition: UPDATE cart SET numbers = @numbers WHERE player_id = @player_id
       parameters:
         - name: "@numbers"
-          type: constant_string
+          type: constant
           value: "[7,8,9,10,11,12]"
+          as: string
         - name: "@player_id"
           type: random_int
           start: 1
@@ -67,22 +69,18 @@ tasks:
           type: random_int
           start: 1
           end: 150000000
-          sqldatatype: int
         - name: "@ticket_id"
           type: guid
-          sqldatatype: uniqueidentifier
         - name: "@ticket_date"
           type: datetime
-          sqldatatype: datetime
         - name: "@contest"
           type: random_int
           start: 1
           end: 1000
-          sqldatatype: int
         - name: "@numbers"
-          type: constant_string
+          type: constant
           value: "[1,2,3,4,5,6]"
-          sqldatatype: json
+          as: string
 
   - taskName: bulk_insert
     taskWeight: 0
@@ -104,5 +102,6 @@ tasks:
           start: 1
           end: 1000
         - name: "@numbers"
-          type: constant_string
+          type: constant
           value: "[1,2,3,4,5,6]"
+          as: string

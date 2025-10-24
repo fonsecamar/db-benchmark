@@ -4,7 +4,7 @@ from executors.sql_executor import SQLExecutor
 from executors.pgsql_executor import PGSQLExecutor
 from executors.mongodb_executor import MongoDBExecutor
 from executors.cosmosdb_executor import CosmosDBExecutor
-#from executors.cassandra_executor import CassandraExecutor
+from executors.cassandra_executor import CassandraExecutor
 import settings
 from settings import Settings, StartUpFrequency
 import logging
@@ -31,13 +31,11 @@ def _(parser):
             parser.add_argument("--mongodb-connection-string", type=str, is_required=True, is_secret=True)
         elif load_type == "COSMOSDB":
             parser.add_argument("--cosmosdb-connection-string", type=str, is_required=True, is_secret=True)
-        #elif load_type == "CASSANDRA":
-        #    parser.add_argument("--cassandra-contact-points", type=str, is_required=True, help="Comma-separated list of Cassandra contact points")
-        #    parser.add_argument("--cassandra-port", type=int, default=9042, help="Cassandra port (default: 9042)")
-        #    parser.add_argument("--cassandra-keyspace", type=str, help="Cassandra keyspace")
-        #    parser.add_argument("--cassandra-username", type=str, help="Cassandra username")
-        #    parser.add_argument("--cassandra-password", type=str, is_secret=True, help="Cassandra password")
-        #    parser.add_argument("--cassandra-consistency-level", type=str, default="QUORUM", help="Cassandra consistency level (default: QUORUM)")
+        elif load_type == "CASSANDRA":
+            parser.add_argument("--cassandra-contact-points", type=str, is_required=True, help="Comma-separated list of Cassandra contact points")
+            parser.add_argument("--cassandra-port", type=int, default=9042, is_required=True, help="Cassandra port (default: 9042)")
+            parser.add_argument("--cassandra-username", type=str, is_required=True, help="Cassandra username")
+            parser.add_argument("--cassandra-password", type=str, is_secret=True, is_required=True, help="Cassandra password")
         added_types.add(load_type)
 
 @events.test_start.add_listener
@@ -59,8 +57,8 @@ def get_executor(load_type: str, environment: Any):
         return MongoDBExecutor(environment)
     elif load_type == "COSMOSDB":
         return CosmosDBExecutor(environment)
-    #elif load_type == "CASSANDRA":
-    #    return CassandraExecutor(environment)
+    elif load_type == "CASSANDRA":
+        return CassandraExecutor(environment)
     else:
         logging.error(f"Unsupported type: {load_type}. Supported types are SQL, PGSQL, MONGODB, COSMOSDB, and CASSANDRA.")
         return None

@@ -1,12 +1,13 @@
-import pymssql
 import logging
-import time
+import pymssql
 import settings
-from typing import Any, Dict, Optional
-from executors.base_executor import BaseExecutor
+import time
+
 from datamanager import DataManager
-from pymssql import DatabaseError
+from executors.base_executor import BaseExecutor
 from pathlib import Path
+from pymssql import DatabaseError
+from typing import Any, Dict, Optional
 
 class SQLExecutor(BaseExecutor):
     def __init__(self, environment: Any):

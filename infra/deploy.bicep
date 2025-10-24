@@ -114,6 +114,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2025-05-01' = {
   }
   properties: {
     dnsPrefix: '${aksName}-dns'
+    kubernetesVersion: ''  // Use default latest version
     agentPoolProfiles: [
       // System node pool
       {

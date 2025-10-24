@@ -1,13 +1,14 @@
 import logging
 import time
 import sys
-from typing import Any, Dict, Optional
+
 from azure.cosmos import CosmosClient, exceptions
-from executors.base_executor import BaseExecutor
 from datamanager import DataManager
+from executors.base_executor import BaseExecutor
+from typing import Any, Dict, Optional
 
 # Set up logging once at module level
-logger = logging.getLogger("azure.core.pipeline.policies.http_logging_policy")
+logger = logging.getLogger("azure.cosmos._cosmos_http_logging_policy")
 logger.setLevel(logging.WARNING)
 
 logger = logging.getLogger('urllib3')
@@ -66,7 +67,7 @@ class CosmosDBExecutor(BaseExecutor):
 
             for param in parameters:
                 if param.get('type') == 'datetime':
-                    param['type'] = 'datetimeISO'
+                    param['as'] = 'string'
 
             param_names = [param.get('name') for param in parameters]
             json_template = command.get('document', {})

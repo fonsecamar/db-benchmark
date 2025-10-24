@@ -1,13 +1,14 @@
 import logging
-import time
-import sys
 import settings
+import sys
+import time
 import yaml
-from typing import Any, Dict, Optional
-from pymongo import MongoClient
-from executors.base_executor import BaseExecutor
+
 from datamanager import DataManager
+from executors.base_executor import BaseExecutor
 from pathlib import Path
+from pymongo import MongoClient
+from typing import Any, Dict, Optional
 
 logging.getLogger("pymongo").setLevel(logging.INFO)
 
