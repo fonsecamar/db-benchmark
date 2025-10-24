@@ -24,7 +24,7 @@ tasks:
           as: string
 
   - taskName: update
-    taskWeight: 0
+    taskWeight: 1
     command:
       definition: UPDATE cart SET numbers = @numbers WHERE player_id = @player_id
       parameters:
@@ -38,7 +38,7 @@ tasks:
           end: 150000000
 
   - taskName: delete
-    taskWeight: 0
+    taskWeight: 1
     command:
       definition: DELETE FROM cart WHERE player_id = @player_id
       parameters:

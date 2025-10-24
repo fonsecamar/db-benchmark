@@ -1,4 +1,5 @@
 type: Cassandra
+runStartUpFrequency: Once
 tasks:
   - taskName: insert_user
     taskWeight: 1

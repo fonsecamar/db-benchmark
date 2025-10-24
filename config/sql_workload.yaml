@@ -1,8 +1,8 @@
 type: SQL
-runStartUpFrequency: Never
+runStartUpFrequency: Once
 tasks:
   - taskName: insert
-    taskWeight: 5
+    taskWeight: 1
     command:
       type: prepared
       definition: INSERT INTO cart (player_id, ticket_id, ticket_date, contest, numbers) VALUES (@player_id, @ticket_id, @ticket_date, @contest, @numbers)
@@ -13,6 +13,7 @@ tasks:
           end: 150000000
         - name: "@ticket_id"
           type: guid
+          as: string
         - name: "@ticket_date"
           type: datetime
         - name: "@contest"
@@ -25,7 +26,7 @@ tasks:
           as: string
 
   - taskName: update
-    taskWeight: 0
+    taskWeight: 1
     command:
       definition: UPDATE cart SET numbers = @numbers WHERE player_id = @player_id
       parameters:
@@ -39,7 +40,7 @@ tasks:
           end: 150000000
 
   - taskName: delete
-    taskWeight: 0
+    taskWeight: 1
     command:
       definition: DELETE FROM cart WHERE player_id = @player_id
       parameters:
@@ -71,6 +72,7 @@ tasks:
           end: 150000000
         - name: "@ticket_id"
           type: guid
+          as: string
         - name: "@ticket_date"
           type: datetime
         - name: "@contest"
@@ -83,7 +85,7 @@ tasks:
           as: string
 
   - taskName: bulk_insert
-    taskWeight: 0
+    taskWeight: 1
     command:
       type: bulk_insert
       tableName: cart
@@ -95,6 +97,7 @@ tasks:
           end: 150000000
         - name: "@ticket_id"
           type: guid
+          as: string
         - name: "@ticket_date"
           type: datetime
         - name: "@contest"
