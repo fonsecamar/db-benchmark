@@ -69,8 +69,15 @@ docker run -p 8089:8089 -e LOCUST_OPTIONS="--class-picker" -v ${PWD}/config/:/ap
 ## Deployment on Azure Kubernetes Service (AKS)
 
 1. Setup Azure infrastructure:
+
+- PowerShell
 ```pwsh
-./deploy/setupAKS.ps1 -ResourceGroupName <resource group name> -Location <location> [-AksName <aks name> -StorageAccountName <storage account> -AcrName <container registry> -Suffix <resource suffix> -AksVMSku <vm sku>]
+./deploy/setupAKS.ps1 -ResourceGroupName <resource group name> -Location <location> [-AksName <aks name> -StorageAccountName <storage account> -AcrName <container registry> -Suffix <resource suffix> -AksVMSku <vm sku> -SubnetId <subnet id>]
+```
+
+- Bash
+```bash
+./deploy/setupAKS.sh --resource-group <resource group name> --location <location> [--aks-name <aks name> --storage-account-name <storage account> --acr-name <container registry> --suffix <resource suffix> --aks-vm-sku <vm sku> --subnet-id <subnet id>]
 ```
 
 > Resources created:
