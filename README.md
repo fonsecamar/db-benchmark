@@ -36,6 +36,8 @@ Each YAML file appears as a user class in the Locust UI, allowing you to select 
 When deploying to AKS, these configuration files are uploaded to the `config` File Share in Azure Blob Storage and should be updated there as needed.
 For local runs, the `config` folder is mounted directly into the container, so no upload is required.
 
+Here a detailed configuration [guide](./WORKLOAD_CONFIG_GUIDE.md).
+
 > [!NOTE]
 >
 > If you change a configuration file after Locust has started, you must restart the pods for changes to take effect.

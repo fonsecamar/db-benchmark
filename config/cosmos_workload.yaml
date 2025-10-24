@@ -5,7 +5,7 @@ tasks:
     command:
       type: insert
       database: lab
-      collection: cart
+      container: cart
       parameters:
         - name: "@player_id"
           type: random_int
@@ -45,7 +45,7 @@ tasks:
     command:
       type: upsert
       database: lab
-      collection: cart
+      container: cart
       parameters:
         - name: "@player_id"
           type: random_int
@@ -81,7 +81,7 @@ tasks:
     command:
       type: delete
       database: lab
-      collection: cart
+      container: cart
       partitionKey:
         - "@player_id"
       id: "@ticket_id"
@@ -100,7 +100,7 @@ tasks:
     command:
       type: point_read
       database: lab
-      collection: cart
+      container: cart
       partitionKey:
         - "@player_id"
       id: "@ticket_id"
@@ -119,7 +119,7 @@ tasks:
     command:
       type: select
       database: lab
-      collection: cart
+      container: cart
       query: 'SELECT * FROM cart c WHERE c.player_id = @player_id'
       parameters:
         - name: "@player_id"

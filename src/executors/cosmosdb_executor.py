@@ -37,12 +37,12 @@ class CosmosDBExecutor(BaseExecutor):
         if self.client:
             self.client = None
 
-    def _get_container(self, db_name: str, collection_name: str):
+    def _get_container(self, db_name: str, container_name: str):
         """Get or cache CosmosDB container client."""
-        cache_key = (db_name, collection_name)
+        cache_key = (db_name, container_name)
         if cache_key not in self._container_cache:
             db = self.client.get_database_client(db_name)
-            container = db.get_container_client(collection_name)
+            container = db.get_container_client(container_name)
             self._container_cache[cache_key] = container
         return self._container_cache[cache_key]
 
@@ -57,8 +57,8 @@ class CosmosDBExecutor(BaseExecutor):
 
         command_type = command.get('type')
         db_name = command.get('database')
-        collection_name = command.get('collection')
-        container = self._get_container(db_name, collection_name)
+        container_name = command.get('container')
+        container = self._get_container(db_name, container_name)
 
         cache_key = f"{task_name}:{command_type}"
         cache = self._param_map_cache.get(cache_key)
