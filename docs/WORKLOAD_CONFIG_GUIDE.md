@@ -2,7 +2,26 @@
 
 ## Overview
 
-This guide explains the generic structure of workload configuration files used across all database types in the benchmarking tool. Each database has specific variations documented in their respective guides.
+### What is a Workload File?
+
+A workload file is a recipe that tells the benchmarking tool what operations to perform against your database and how often to perform them. Think of it like a script that simulates real-world user activity—some users might be reading data, others inserting new records, and some updating existing information.
+
+### Why Use Workload Files?
+
+Instead of writing custom code for every benchmark scenario, you can describe your test scenario in a simple YAML configuration file. For example:
+- **E-commerce scenario**: Simulate 60% product searches, 30% cart insertions, 10% order updates
+- **Analytics scenario**: Simulate 90% complex queries, 10% data ingestion
+- **Social media scenario**: Simulate 50% feed reads, 40% post creation, 10% likes/comments
+
+### How Does It Work?
+
+The tool reads your workload file and repeatedly executes the defined tasks based on their weights (probability). Each task can have dynamic parameters that change on every execution—generating random IDs, timestamps, names, or any data pattern you need.
+
+**Example**: A task with weight 70 in a workload with total weight 100 will execute approximately 70% of the time.
+
+### What This Guide Covers
+
+This guide explains the generic structure of workload configuration files that work across all database types (SQL Server, PostgreSQL, MongoDB, Cosmos DB, Cassandra). Each database has specific variations and features documented in their respective guides linked below.
 
 ## Configuration File Structure
 
@@ -39,15 +58,57 @@ Controls when startup scripts are executed:
 Sample startup scripts are located in `workloadsamples/<database>/<workload_name>_startup.<ext>` and typically create schemas, tables, indexes, etc, and must be placed in the same `config/` folder as the workload files.
 
 ### 3. Tasks
-Each task represents a specific database operation (INSERT, SELECT, UPDATE, DELETE, etc.).
 
-#### Task Weight
-Determines the relative frequency of task execution:
-- `taskWeight: 0` - Task is disabled
-- `taskWeight: 50` - Task probability is 50/(Sum Total Task Weights)
-- Higher values = more frequent execution
+#### What is a Task?
 
-**Example**: If you have 3 tasks with weights 1, 1, and 1, they will each execute approximately 1/3 of the time. If you have 4 tasks with weights 1, 2, 3, 4, they will execute approximately 10%, 20%, 30% and 40%, respectively.
+A task represents a single type of database operation you want to test. Each task is like a player in your simulation—one player might be constantly reading product information, another might be adding items to carts, and another might be updating inventory.
+
+**Common task examples**:
+- `insert` - Add new records to the database
+- `select` - Query/read existing data
+- `update` - Modify existing records
+- `delete` - Remove records
+- `upsert` - Insert or update if exists
+
+#### Task Weight: Controlling Frequency
+
+The `taskWeight` determines how often each task runs compared to others. Think of it as a raffle where each task gets tickets:
+
+**Simple example**:
+```yaml
+tasks:
+  - taskName: read_product
+    taskWeight: 70      # 70 tickets
+  - taskName: add_to_cart
+    taskWeight: 20      # 20 tickets
+  - taskName: checkout
+    taskWeight: 10      # 10 tickets
+# Total: 100 tickets
+```
+
+In this scenario:
+- `read_product` executes **70% of the time** (70 out of 100 tickets)
+- `add_to_cart` executes **20% of the time** (20 out of 100 tickets)
+- `checkout` executes **10% of the time** (10 out of 100 tickets)
+
+**The math**: Task probability = `taskWeight / (sum of all taskWeights)`
+
+**Another example with different totals**:
+```yaml
+tasks:
+  - taskName: query
+    taskWeight: 6       # 6/(6+3+1) = 60%
+  - taskName: insert
+    taskWeight: 3       # 3/(6+3+1) = 30%
+  - taskName: delete
+    taskWeight: 1       # 1/(6+3+1) = 10%
+# Total: 10 tickets = same percentages as 60/30/10
+```
+
+**Special case**:
+- `taskWeight: 0` - Task is completely disabled and never executes
+
+💡 **Tip**: You don't need weights to sum to 100. Use whatever numbers make sense for your ratio. Weights of 2:1 are the same as 200:100 or 20:10.
 
 ### 4. Parameters
 Define dynamic values for queries:
@@ -209,4 +270,4 @@ tasks:
 4. Test with low user count first
 5. Scale up gradually
 
-For more information about running benchmarks, see [README.md](./README.md).
+For more information about running benchmarks, see [README](../README.md).

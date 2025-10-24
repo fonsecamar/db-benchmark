@@ -9,9 +9,9 @@ It provides a consistent and repeatable way to measure and compare database thro
 The benchmarking suite is built for easy deployment, supporting both local execution with Docker and scalable deployments on Azure Kubernetes Service (AKS).
 
 Currently supported databases:
-- Azure SQL Database (all), SQL Server
+- Azure SQL Family (SQL Database, SQL Managed Instance, SQL Hyperscale), SQL Server (IaaS, Self-Hosted)
 - Azure Cosmos DB for NoSQL
-- Azure Cosmos DB for MongoDB (including native MongoDB)
+- Azure Cosmos DB for MongoDB vCore (including native MongoDB)
 - Azure Database for PostgreSQL Flexible Server
 - Azure Managed Instance for Apache Cassandra (including native Apache Cassandra)
 
