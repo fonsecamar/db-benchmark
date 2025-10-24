@@ -169,6 +169,7 @@ CREATE TABLE events (
 - Use clustering keys for range queries
 - Avoid `ALLOW FILTERING` (indicates poor data model)
 - Use `LIMIT` to control result size
+- If using Cassandra 5.x+, create secondary indexes using **Storage-attached Indexing [(SAI)](https://cassandra.apache.org/doc/latest/cassandra/getting-started/sai-quickstart.html)**
 
 ### 4. Consistency Trade-offs
 
