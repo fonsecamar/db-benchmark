@@ -4,6 +4,14 @@
 
 This guide covers workload configuration for SQL Server and Azure SQL Database. For generic configuration concepts, see [WORKLOAD_CONFIG_GUIDE](./WORKLOAD_CONFIG_GUIDE.md).
 
+## Connection Configuration
+
+Before starting the benchmarks, provide the following parameters in the Custom Parameters section in the UI:
+- `SQL Server`: SQL Server endpoint - `Format: <IP>|<server_name>.database.windows.net[:<port>]`.
+- `SQL User`: SQL user name
+- `SQL Password`: SQL user password
+- `SQL Database Name`: SQL database name
+
 ## Quick Start
 
 ```yaml
@@ -505,16 +513,6 @@ SELECT * FROM sys.dm_os_wait_stats;
 - Set up alerts for high DTU
 - Monitor query performance with Query Performance Insight
 - Use Intelligent Performance for recommendations
-```
-
-## Connection Configuration
-
-When running benchmarks, provide:
-- `sql_connection_string`: SQL Server connection string
-
-**Format**: 
-```
-Server=server.database.windows.net;Database=mydb;User ID=user;Password=pass;Encrypt=True;TrustServerCertificate=False;
 ```
 
 ## References

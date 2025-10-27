@@ -4,6 +4,11 @@
 
 This guide covers workload configuration for Azure Cosmos DB NoSQL API. For generic configuration concepts, see [WORKLOAD_CONFIG_GUIDE](./WORKLOAD_CONFIG_GUIDE.md).
 
+## Connection Configuration
+
+Before starting the benchmarks, provide the following parameter in the Custom Parameters section in the UI:
+- `cosmosdb_connection_string`: Azure CosmosDB connection string - `Format: AccountEndpoint=https://<account name>.documents.azure.com:443/;AccountKey=<account key>;`
+
 ## Quick Start
 
 ```yaml

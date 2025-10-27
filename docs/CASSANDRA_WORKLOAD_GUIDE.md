@@ -4,6 +4,19 @@
 
 This guide covers workload configuration for Apache Cassandra and Azure Managed Instance for Apache Cassandra. For generic configuration concepts, see [WORKLOAD_CONFIG_GUIDE](./WORKLOAD_CONFIG_GUIDE.md).
 
+## Connection Configuration
+
+Before starting the benchmarks, provide the following parameters in the Custom Parameters section in the UI:
+- `cassandra_contact_points`: Comma-separated list of nodes
+- `cassandra_port`: CQL native protocol port (default: 9042)
+- `cassandra_username`: Authentication username
+- `cassandra_password`: Authentication password
+
+For Azure Managed Instance for Apache Cassandra:
+- Uses TLS 1.3 encryption
+- Requires username/password authentication
+- Contact points are cluster node IPs
+
 ## Quick Start
 
 ```yaml
@@ -292,19 +305,6 @@ Key metrics to track during benchmarking:
 - Leverage clustering keys for sorting
 - Monitor partition sizes
 - Use appropriate consistency levels
-
-## Connection Configuration
-
-When running benchmarks, provide:
-- `cassandra_contact_points`: Comma-separated list of nodes
-- `cassandra_port`: CQL native protocol port (default: 9042)
-- `cassandra_username`: Authentication username (if enabled)
-- `cassandra_password`: Authentication password (if enabled)
-
-For Azure Managed Instance for Apache Cassandra:
-- Uses TLS 1.3 encryption
-- Requires username/password authentication
-- Contact points are cluster node IPs
 
 ## References
 

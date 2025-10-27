@@ -4,6 +4,17 @@
 
 This guide covers workload configuration for PostgreSQL and Azure Database for PostgreSQL. For generic configuration concepts, see [WORKLOAD_CONFIG_GUIDE](./WORKLOAD_CONFIG_GUIDE.md).
 
+## Connection Configuration
+
+Before starting the benchmarks, provide the following parameter in the Custom Parameters section in the UI:
+- `pgsql_connection_string`: PostgreSQL connection string - `Format: postgresql://user:password@host:5432/database?sslmode=require`.
+
+**Azure Example**:
+```
+postgresql://myuser@myserver:password@myserver.postgres.database.azure.com:5432/mydb?sslmode=require
+```
+> If using Azure Database for PostgreSQL Elastic Cluster, use port 7432.
+
 ## Quick Start
 
 ```yaml
@@ -402,21 +413,6 @@ CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
 
 -- Install auto_explain
 LOAD 'auto_explain';
-```
-
-## Connection Configuration
-
-When running benchmarks, provide:
-- `pgsql_connection_string`: PostgreSQL connection string
-
-**Format**: 
-```
-postgresql://user:password@host:5432/database?sslmode=require
-```
-
-**Azure Example**:
-```
-postgresql://myuser@myserver:password@myserver.postgres.database.azure.com:5432/mydb?sslmode=require
 ```
 
 ## References

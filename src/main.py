@@ -21,21 +21,21 @@ def _(parser):
         if load_type in added_types:
             continue
         if load_type == "SQL":
-            parser.add_argument("--sql-server", type=str, is_required=True)
-            parser.add_argument("--sql-user", type=str, is_required=True)
-            parser.add_argument("--sql-password", type=str, is_required=True, is_secret=True)
-            parser.add_argument("--sql-db-name", type=str, is_required=True)
+            parser.add_argument("--sql-server", type=str, is_required=True, help="Server URI or IP address[:<port>]")
+            parser.add_argument("--sql-user", type=str, is_required=True, help="User Name")
+            parser.add_argument("--sql-password", type=str, is_required=True, is_secret=True, help="User Password")
+            parser.add_argument("--sql-db-name", type=str, is_required=True, help="Database Name")
         elif load_type == "PGSQL":
-            parser.add_argument("--pgsql-connection-string", type=str, is_required=True, is_secret=True)
+            parser.add_argument("--pgsql-connection-string", type=str, is_required=True, is_secret=True, help="Format: postgresql://<server_name>.postgres.database.azure.com:<port>/postgres?sslmode=require")
         elif load_type == "MONGODB":
-            parser.add_argument("--mongodb-connection-string", type=str, is_required=True, is_secret=True)
+            parser.add_argument("--mongodb-connection-string", type=str, is_required=True, is_secret=True, help="Format: mongodb+srv://<username>:<password>@<cluster-address>/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000")
         elif load_type == "COSMOSDB":
-            parser.add_argument("--cosmosdb-connection-string", type=str, is_required=True, is_secret=True)
+            parser.add_argument("--cosmosdb-connection-string", type=str, is_required=True, is_secret=True, help="Format: AccountEndpoint=<your-account-endpoint>;AccountKey=<your-account-key>;")
         elif load_type == "CASSANDRA":
-            parser.add_argument("--cassandra-contact-points", type=str, is_required=True, help="Comma-separated list of Cassandra contact points")
-            parser.add_argument("--cassandra-port", type=int, default=9042, is_required=True, help="Cassandra port (default: 9042)")
-            parser.add_argument("--cassandra-username", type=str, is_required=True, help="Cassandra username")
-            parser.add_argument("--cassandra-password", type=str, is_secret=True, is_required=True, help="Cassandra password")
+            parser.add_argument("--cassandra-contact-points", type=str, is_required=True, help="Comma-separated list - IP addresses or hostnames")
+            parser.add_argument("--cassandra-port", type=int, default=9042, is_required=True, help="Default: 9042")
+            parser.add_argument("--cassandra-username", type=str, is_required=True, help="User Name")
+            parser.add_argument("--cassandra-password", type=str, is_secret=True, is_required=True, help="User Password")
         added_types.add(load_type)
 
 @events.test_start.add_listener

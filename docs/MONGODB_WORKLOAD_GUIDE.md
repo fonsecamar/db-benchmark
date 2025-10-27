@@ -4,6 +4,16 @@
 
 This guide covers workload configuration for MongoDB and Azure Cosmos DB for MongoDB vCore. For generic configuration concepts, see [WORKLOAD_CONFIG_GUIDE](./WORKLOAD_CONFIG_GUIDE.md).
 
+## Connection Configuration
+
+Before starting the benchmarks, provide the following parameter in the Custom Parameters section in the UI:
+- `mongodb_connection_string`: Full MongoDB connection string - `Format: mongodb://username:password@host:port/database?options`
+
+**Azure Example**:
+```
+mongodb+srv://<user>:<password>@<cluster name>.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000
+```
+
 ## Quick Start
 
 ```yaml
@@ -402,15 +412,6 @@ tasks:
 - Use appropriate batch sizes
 - Monitor slow queries
 - Use projections to minimize data transfer
-
-## Connection Configuration
-
-When running benchmarks, provide:
-- `mongodb_connection_string`: Full MongoDB connection string
-
-**Format**: `mongodb://username:password@host:port/database?options`
-
-**Example**: `mongodb://admin:pass@localhost:27017/test?authSource=admin`
 
 ## References
 
