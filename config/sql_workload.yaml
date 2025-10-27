@@ -1,7 +1,8 @@
 type: SQL
+runStartUpFrequency: Once
 tasks:
   - taskName: insert
-    taskWeight: 5
+    taskWeight: 1
     command:
       type: prepared
       definition: INSERT INTO cart (player_id, ticket_id, ticket_date, contest, numbers) VALUES (@player_id, @ticket_id, @ticket_date, @contest, @numbers)
@@ -12,6 +13,7 @@ tasks:
           end: 150000000
         - name: "@ticket_id"
           type: guid
+          as: string
         - name: "@ticket_date"
           type: datetime
         - name: "@contest"
@@ -19,24 +21,26 @@ tasks:
           start: 1
           end: 1000
         - name: "@numbers"
-          type: constant_string
+          type: constant
           value: "[1,2,3,4,5,6]"
+          as: string
 
   - taskName: update
-    taskWeight: 0
+    taskWeight: 1
     command:
       definition: UPDATE cart SET numbers = @numbers WHERE player_id = @player_id
       parameters:
         - name: "@numbers"
-          type: constant_string
+          type: constant
           value: "[7,8,9,10,11,12]"
+          as: string
         - name: "@player_id"
           type: random_int
           start: 1
           end: 150000000
 
   - taskName: delete
-    taskWeight: 0
+    taskWeight: 1
     command:
       definition: DELETE FROM cart WHERE player_id = @player_id
       parameters:
@@ -66,19 +70,41 @@ tasks:
           type: random_int
           start: 1
           end: 150000000
-          sqldatatype: int
         - name: "@ticket_id"
           type: guid
-          sqldatatype: uniqueidentifier
+          as: string
         - name: "@ticket_date"
           type: datetime
-          sqldatatype: datetime
         - name: "@contest"
           type: random_int
           start: 1
           end: 1000
-          sqldatatype: int
         - name: "@numbers"
-          type: constant_string
+          type: constant
           value: "[1,2,3,4,5,6]"
-          sqldatatype: json
+          as: string
+
+  - taskName: bulk_insert
+    taskWeight: 1
+    command:
+      type: bulk_insert
+      tableName: cart
+      batchSize: 1000
+      parameters:
+        - name: "@player_id"
+          type: random_int
+          start: 1
+          end: 150000000
+        - name: "@ticket_id"
+          type: guid
+          as: string
+        - name: "@ticket_date"
+          type: datetime
+        - name: "@contest"
+          type: random_int
+          start: 1
+          end: 1000
+        - name: "@numbers"
+          type: constant
+          value: "[1,2,3,4,5,6]"
+          as: string

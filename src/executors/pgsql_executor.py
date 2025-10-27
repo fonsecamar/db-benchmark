@@ -1,14 +1,15 @@
-import psycopg
 import logging
+import psycopg
 import time
-from typing import Any, Dict, Optional
-from executors.base_executor import BaseExecutor
+
 from datamanager import DataManager
+from executors.base_executor import BaseExecutor
 from psycopg import DatabaseError
+from typing import Any, Dict, Optional
 
 class PGSQLExecutor(BaseExecutor):
-    def __init__(self, environment: Any, workload_name: str):
-        super().__init__(environment, workload_name)
+    def __init__(self, environment: Any):
+        super().__init__(environment)
         self.connection: Optional[psycopg.Connection] = None
         self._connect()
         self.prepared_params: Dict[str, str] = {}

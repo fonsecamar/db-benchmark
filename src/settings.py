@@ -1,9 +1,15 @@
 from typing import List, Dict, Any
 from dataclasses import dataclass
 from pathlib import Path
+from enum import Enum
 import json
 import logging
 import yaml
+
+class StartUpFrequency(Enum):
+    NEVER = "never"
+    ONCE = "once"
+    ALWAYS = "always"
 
 @dataclass
 class TaskConfig:
@@ -14,7 +20,7 @@ class TaskConfig:
     @staticmethod
     def from_dict(data: dict):
         return TaskConfig(
-            taskWeight=data.get("taskWeight"),
+            taskWeight=data.get("taskWeight", 1),
             taskName=data.get("taskName"),
             command=data.get("command", {})
         )
@@ -23,7 +29,13 @@ class TaskConfig:
 class Settings:
     workloadName: str
     type: str
+    runStartUpFrequency: StartUpFrequency
     tasks: List[TaskConfig]
+
+def get_config_path() -> Path:
+    if Path.cwd() == Path('/app'):
+        return Path('/app/config')
+    return Path(__file__).parent.parent / 'config/'
 
 def load_tasks(config: dict) -> List[TaskConfig]:
     tasks = []
@@ -40,12 +52,9 @@ def load_tasks(config: dict) -> List[TaskConfig]:
 
 def init_settings() -> List[Settings]:
 
-    if Path.cwd() == Path('/app'):
-        config_dir = Path('/app/config')
-    else:
-        config_dir = Path(__file__).parent.parent / 'config/'
-    
+    config_dir = get_config_path()
     config_dir = config_dir.resolve()
+
     logging.info(f"Loading settings from all JSON and YAML files in {config_dir}")
     settings_list: List[Settings] = []
     if not config_dir.exists():
@@ -53,7 +62,7 @@ def init_settings() -> List[Settings]:
         return settings_list
 
     for config_file in config_dir.glob('*'):
-        if config_file.suffix.lower() not in ['.json', '.yaml', '.yml']:
+        if config_file.suffix.lower() not in ['.json', '.yaml', '.yml'] or config_file.stem.lower().endswith('_startup'):
             continue
         try:
             with open(config_file, 'r', encoding='utf-8') as file:
@@ -63,10 +72,20 @@ def init_settings() -> List[Settings]:
                     config = yaml.safe_load(file)
             workload_name = config_file.stem
             config_type = config.get("type", "")
+            
+            run_startup_frequency_value = config.get("runStartUpFrequency", "Never")
+            frequency_mapping = {
+                    "never": StartUpFrequency.NEVER,
+                    "once": StartUpFrequency.ONCE,
+                    "always": StartUpFrequency.ALWAYS
+                }
+            run_startup_frequency = frequency_mapping.get(run_startup_frequency_value.lower(),StartUpFrequency.NEVER)
+
             tasks = load_tasks(config)
             settings_list.append(Settings(
                 workloadName=workload_name,
                 type=config_type.upper(),
+                runStartUpFrequency=run_startup_frequency,
                 tasks=tasks
             ))
         except Exception as e:

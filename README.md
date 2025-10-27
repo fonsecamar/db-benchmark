@@ -9,10 +9,11 @@ It provides a consistent and repeatable way to measure and compare database thro
 The benchmarking suite is built for easy deployment, supporting both local execution with Docker and scalable deployments on Azure Kubernetes Service (AKS).
 
 Currently supported databases:
-- Azure SQL Database (all), SQL Server
+- Azure SQL Family (SQL Database, SQL Managed Instance, SQL Hyperscale), SQL Server (IaaS, Self-Hosted)
 - Azure Cosmos DB for NoSQL
-- Azure Cosmos DB for MongoDB (including native MongoDB)
+- Azure Cosmos DB for MongoDB vCore (including native MongoDB)
 - Azure Database for PostgreSQL Flexible Server
+- Azure Managed Instance for Apache Cassandra (including native Apache Cassandra)
 
 ## About Locust
 
@@ -20,11 +21,11 @@ Currently supported databases:
 
 ## Installation Requirements
 
-- Python 3.8+
-- Docker
-- Azure CLI (for AKS deployment)
-- Bicep (for AKS deployment)
-- kubectl (for AKS deployment)
+- Python 3.8+ (local execution)
+- Docker (local Docker deployment)
+- Azure CLI (AKS deployment)
+- Bicep (AKS deployment)
+- kubectl (AKS deployment)
 - A pre-existing database for testing
 
 ## Configuration
@@ -34,6 +35,8 @@ Each YAML file appears as a user class in the Locust UI, allowing you to select 
 
 When deploying to AKS, these configuration files are uploaded to the `config` File Share in Azure Blob Storage and should be updated there as needed.
 For local runs, the `config` folder is mounted directly into the container, so no upload is required.
+
+Here a detailed configuration [guide](./docs/WORKLOAD_CONFIG_GUIDE.md).
 
 > [!NOTE]
 >
@@ -66,8 +69,15 @@ docker run -p 8089:8089 -e LOCUST_OPTIONS="--class-picker" -v ${PWD}/config/:/ap
 ## Deployment on Azure Kubernetes Service (AKS)
 
 1. Setup Azure infrastructure:
+
+- PowerShell
 ```pwsh
-./deploy/setupAKS.ps1 -ResourceGroupName <resource group name> -Location <location> [-AksName <aks name> -StorageAccountName <storage account> -AcrName <container registry> -Suffix <resource suffix> -AksVMSku <vm sku>]
+./deploy/setupAKS.ps1 -ResourceGroupName <resource group name> -Location <location> [-AksName <aks name> -StorageAccountName <storage account> -AcrName <container registry> -Suffix <resource suffix> -AksVMSku <vm sku> -SubnetId <subnet id>]
+```
+
+- Bash
+```bash
+./deploy/setupAKS.sh --resource-group <resource group name> --location <location> [--aks-name <aks name> --storage-account-name <storage account> --acr-name <container registry> --suffix <resource suffix> --aks-vm-sku <vm sku> --subnet-id <subnet id>]
 ```
 
 > Resources created:

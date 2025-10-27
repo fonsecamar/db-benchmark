@@ -7,10 +7,8 @@ class BaseExecutor:
     abstract = True
     _param_pattern = re.compile(r'@\w+')
 
-    def __init__(self, environment, workload_name):
+    def __init__(self, environment):
         self.environment = environment
-        self.workload_name = workload_name
-        self.parsedCommands = {}
 
     def _fire_event(self, request_type: str, name: str, response_time: float, exception: Exception = None, response_length: int = 0) -> None:
         """Fire a request event."""
@@ -75,6 +73,10 @@ class BaseExecutor:
             self._replace_json_param_at_paths(obj_copy, paths, param_values[param])
         return obj_copy    
 
-    def execute(self, command: Any):
+    def execute(self, command: Any) -> None:
+        """Subclasses must implement this method."""
+        raise NotImplementedError("Subclasses must implement this method.")
+
+    def run_startup(self, workloadName: str) -> None:
         """Subclasses must implement this method."""
         raise NotImplementedError("Subclasses must implement this method.")

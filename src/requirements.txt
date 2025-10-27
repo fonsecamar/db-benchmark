@@ -1,4 +1,5 @@
 azure-cosmos
+cassandra-driver
 faker
 locust
 psycopg
