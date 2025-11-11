@@ -82,10 +82,10 @@ class MongoDBExecutor(BaseExecutor):
 
     def execute(self, command: Dict, task_name: str) -> None:
         if self.client is None:
-            logging.error("No MongoDB client available. Attempting to reconnect.")
+            logging.error("No MongoDB client available. Attempting to connect.")
             self._connect()
             if self.client is None:
-                logging.error("Reconnection to MongoDB failed.")
+                logging.error("Connection to MongoDB failed.")
                 return
 
         db_name = command.get('database')
