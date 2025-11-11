@@ -43,6 +43,7 @@ def on_test_start(environment, **kwargs):
     if isinstance(environment.runner, MasterRunner) or isinstance(environment.runner, LocalRunner):
         for uc in environment.user_classes:
             if uc.runStartUp:
+                environment.runner.state = "running"
                 logging.info(f"Running startup for user class: {uc.__name__}")
                 uc(environment).run_startup()
             else:
