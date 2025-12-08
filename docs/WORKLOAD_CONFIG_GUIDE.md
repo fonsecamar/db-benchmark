@@ -128,7 +128,91 @@ parameters:
 | `guid` | UUID/GUID | - |
 | `datetime` | Current timestamp | `format` (optional) |
 | `constant` | Fixed value | `value`, `as` (type conversion) |
+| `concat` | Concatenate other parameters | `value` (template string) |
 | `faker.<method>` | Faker library method | See Faker docs |
+
+#### Concatenating Parameters
+
+The `concat` type allows you to combine multiple parameters or mix them with static text to create composite values:
+
+```yaml
+parameters:
+  - name: "@prefix"
+    type: random_string
+    length: 3
+  
+  - name: "@suffix"
+    type: random_int
+    start: 1000
+    end: 9999
+  
+  - name: "@username"
+    type: concat
+    value: "user_{@prefix}{@suffix}"  # Results in: user_ABC1234
+```
+
+**Important rules for `concat`**:
+- ✅ Reference other parameters using `{@parameter_name}` syntax
+- ✅ Referenced parameters **must be defined BEFORE** the concat parameter
+- ✅ Mix static text with parameter references
+- ✅ Reference multiple parameters in a single concat
+
+**Example - Building a composite key**:
+```yaml
+parameters:
+  - name: "@region"
+    type: random_list
+    list: ["US", "EU", "ASIA"]
+  
+  - name: "@timestamp"
+    type: unix_timestamp
+  
+  - name: "@user_id"
+    type: random_int
+    start: 1
+    end: 999999
+  
+  - name: "@composite_key"
+    type: concat
+    value: "{@region}_{@timestamp}_{@user_id}"
+    # Results in: US_1701234567_123456
+```
+
+**Example - Email address with domain**:
+```yaml
+parameters:
+  - name: "@username"
+    type: faker.user_name
+  
+  - name: "@email"
+    type: concat
+    value: "{@username}@company.com"
+    # Results in: john.doe@company.com
+```
+
+⚠️ **Common mistakes**:
+```yaml
+# ❌ WRONG - Referencing parameter defined later
+parameters:
+  - name: "@full_name"
+    type: concat
+    value: "{@first_name} {@last_name}"  # Error: @first_name not yet defined
+  
+  - name: "@first_name"
+    type: faker.first_name
+
+# ✅ CORRECT - Define dependencies first
+parameters:
+  - name: "@first_name"
+    type: faker.first_name
+  
+  - name: "@last_name"
+    type: faker.last_name
+  
+  - name: "@full_name"
+    type: concat
+    value: "{@first_name} {@last_name}"
+```
 
 #### Parameter Type Conversion
 
