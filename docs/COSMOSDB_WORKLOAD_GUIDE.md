@@ -6,8 +6,101 @@ This guide covers workload configuration for Azure Cosmos DB NoSQL API. For gene
 
 ## Connection Configuration
 
-Before starting the benchmarks, provide the following parameter in the Custom Parameters section in the UI:
-- `cosmosdb_connection_string`: Azure CosmosDB connection string - `Format: AccountEndpoint=https://<account name>.documents.azure.com:443/;AccountKey=<account key>;`
+Before starting the benchmarks, provide the following parameter in the Custom Parameters section in the UI.
+
+> **📝 Note**: You can use the connection string directly from the Azure Portal (Keys section) and optionally append the custom parameters below to control region preferences and multi-master behavior.
+
+### Connection String Format
+
+```
+AccountEndpoint=<endpoint>;AccountKey=<key>;Regions=<region1>,<region2>;MultipleWriteLocations=<True|False>
+```
+
+**Required Parameters**:
+- `AccountEndpoint`: Your Cosmos DB account URI (e.g., `https://myaccount.documents.azure.com:443/`)
+- `AccountKey`: Primary or secondary key for authentication
+
+**Optional Custom Parameters**:
+- `Regions`: Comma-separated list of Azure regions for preferred read/write routing and failover priority
+  - Single region: `Regions=UK South`
+  - Multiple regions: `Regions=UK South,West Europe,East US`
+  - The order defines the **priority** for routing operations and failover
+  - **Behavior depends on account topology**:
+    - **Single-region write accounts**: Regions are used for **read preferences only**. Writes always go to the write region.
+    - **Multi-region write accounts** (with `MultipleWriteLocations=True`): Regions are used for **both read and write preferences**. Operations are routed to the preferred region.
+  - First region in list = highest priority
+
+- `MultipleWriteLocations`: Enable multi-master writes (default: `False`)
+  - `MultipleWriteLocations=True`: Enable writes to any configured region (requires account to have multi-region writes enabled)
+  - `MultipleWriteLocations=False`: Writes go only to the designated write region
+  - **Important**: This must match your Cosmos DB account configuration. If your account doesn't have multi-region writes enabled, setting this to `True` will have no effect.
+
+### Connection String Examples
+
+**Portal Connection String (unmodified)**:
+```
+AccountEndpoint=https://myaccount.documents.azure.com:443/;AccountKey=ABC123...
+```
+- Uses SDK's automatic region discovery
+- Works for all account topologies
+
+**Single Region Read Preference**:
+```
+AccountEndpoint=https://myaccount.documents.azure.com:443/;AccountKey=ABC123...;Regions=UK South
+```
+- Prefer reading from UK South
+- Writes go to designated write region (single-region write accounts)
+
+**Multi-Region with Read Preferences** (single-region write account):
+```
+AccountEndpoint=https://myaccount.documents.azure.com:443/;AccountKey=ABC123...;Regions=UK South,West Europe,East US
+```
+- Reads prefer UK South → West Europe → East US (in order)
+- Writes always go to the account's write region
+- Automatic failover for reads if preferred region is unavailable
+
+**Multi-Master Configuration** (multi-region write account):
+```
+AccountEndpoint=https://myaccount.documents.azure.com:443/;AccountKey=ABC123...;Regions=UK South,West Europe,East US;MultipleWriteLocations=True
+```
+- **Both reads and writes** prefer UK South → West Europe → East US
+- Enables lowest latency for global applications
+- Automatic failover for both reads and writes
+- Requires account to have multi-region writes enabled in Azure Portal
+
+### Understanding Region Topology
+
+**Single-Region Write Accounts** (default):
+- One write region, multiple read regions
+- `Regions` parameter controls **read routing only**
+- All writes go to designated write region regardless of `Regions`
+- Lower cost, simpler conflict resolution
+
+**Multi-Region Write Accounts** (Multi-Master):
+- Multiple write regions, multiple read regions
+- `Regions` parameter controls **both read and write routing**
+- Requires `MultipleWriteLocations=True` in connection string
+- Higher availability, lower global write latency
+- Requires conflict resolution policy
+- Higher cost
+
+**To enable multi-region writes**: Configure in Azure Portal → Cosmos DB Account → Replicate data globally → Enable Multi-region Writes
+
+### Multi-Region Benefits
+
+When using preferred regions in the connection string:
+
+✅ **Automatic Failover**: Client automatically fails over to next region if preferred region becomes unavailable
+
+✅ **Read Optimization**: Reads are routed to closest/preferred region for lower latency (all account types)
+
+✅ **Write Optimization** (Multi-Master only): Writes are routed to closest/preferred region when `MultipleWriteLocations=True`
+
+✅ **High Availability**: Continues operating even if a region experiences issues
+
+✅ **Predictable Performance**: Control which regions handle your workload
+
+**Important**: All regions specified must be enabled in your Cosmos DB account configuration. See [Distribute data globally](https://learn.microsoft.com/azure/cosmos-db/distribute-data-globally) for setup instructions.
 
 ## Quick Start
 

@@ -25,10 +25,32 @@ class CosmosDBExecutor(BaseExecutor):
     def _connect(self) -> None:
         """Establish CosmosDB client connection."""
         try:
-            self.client = CosmosClient.from_connection_string(
-                self.environment.parsed_options.cosmosdb_connection_string
+            # Parse connection string: AccountEndpoint=<URI>;AccountKey=<key>;Regions=<Region1>,<Region2>;ExcludedRegions=<Region3>,<Region4>;MultipleWriteLocations=True
+            conn_str = self.environment.parsed_options.cosmosdb_connection_string
+            parts = {}
+            for part in conn_str.split(';'):
+                if '=' in part:
+                    key, value = part.split('=', 1)
+                    parts[key.strip()] = value.strip()
+            
+            endpoint = parts.get('AccountEndpoint')
+            key = parts.get('AccountKey')
+            regions = parts.get('Regions')
+            excluded_regions = parts.get('ExcludedRegions')
+            multiple_write_locations = parts.get('MultipleWriteLocations', False)
+            
+            # Build preferred_locations list from regions
+            preferred_regions = [r.strip() for r in regions.split(',') if r.strip()] if regions else None
+            excluded_regions = [r.strip() for r in excluded_regions.split(',') if r.strip()] if excluded_regions else None
+            
+            self.client = CosmosClient(
+                url=endpoint,
+                credential=key,
+                preferred_locations=preferred_regions,
+                excluded_locations=excluded_regions,
+                multiple_write_locations=multiple_write_locations
             )
-            logging.debug("CosmosDB connection established.")
+            logging.debug(f"CosmosDB connection established. Endpoint: {endpoint}, Regions: {preferred_regions}, Excluded Regions: {excluded_regions}, Multiple Write Locations: {multiple_write_locations}")
         except Exception as e:
             logging.exception(f"CosmosDB connection error: {e}")
             self.client = None
