@@ -13,7 +13,7 @@ class DataManager:
     _default_date_format = "%Y-%m-%dT%H:%M:%S.%fZ"
 
     # Regex cache for concat (avoid recompiling)
-    _concat_pattern = re.compile(r"\{@\w+\}")
+    _concat_pattern = re.compile(r"\{(@\w+)\}")
     
     # Type-to-function mapping (avoid giant if/elif chain)
     _type_generators = {
@@ -44,9 +44,32 @@ class DataManager:
         datetime: "datetime",
         bytes: "varbinary",
     }
+    
+    # PostgreSQL type mapping
+    _pgsql_type_map = {
+        bool: "BOOLEAN",
+        int: "INTEGER",
+        float: "DOUBLE PRECISION",
+        uuid.UUID: "UUID",
+        ObjectId: "VARCHAR(24)",
+        datetime: "TIMESTAMP",
+        bytes: "BYTEA",
+        str: "VARCHAR(8000)",
+    }
 
     @staticmethod
-    def generate_param_value(param, values=None):
+    def generate_param_value(param, values=None, db_type='sql'):
+        """
+        Generate parameter value with database-specific type inference.
+        
+        Args:
+            param: Parameter definition dictionary
+            values: Dictionary of previously generated parameter values
+            db_type: Database type for type inference ('sql' or 'pgsql')
+        
+        Returns:
+            Tuple of (value, sql_type)
+        """
         param_type = param.get('type').lower()
         values = values or {}
 
@@ -55,9 +78,14 @@ class DataManager:
         output_type = param.get('as')
         if output_type:
             converted_value = DataManager._convert_type(raw_value, output_type.lower(), param)
-            return converted_value, DataManager._infer_sql_type(converted_value)
+        else:
+            converted_value = raw_value
         
-        return raw_value, DataManager._infer_sql_type(raw_value)
+        # Choose type inference method based on database type
+        if db_type == 'pgsql':
+            return converted_value, DataManager._infer_pgsql_type(converted_value)
+        else:
+            return converted_value, DataManager._infer_sql_type(converted_value)
 
     @staticmethod
     def _generate_raw_value(param_type, param, values):
@@ -88,8 +116,8 @@ class DataManager:
         for match in DataManager._concat_pattern.finditer(value_str):
             # Add text before placeholder
             parts.append(value_str[last_end:match.start()])
-            # Add placeholder value
-            key = match.group(0)[2:-1]  # Remove {@...}
+            # Add placeholder value (group(1) captures @prefix directly)
+            key = match.group(1)
             parts.append(str(values.get(key, '')))
             last_end = match.end()
         
@@ -170,6 +198,12 @@ class DataManager:
         """Infers SQL type based on Python type (optimized with dict lookup)."""
         value_type = type(value)
         return DataManager._sql_type_map.get(value_type, "varchar(255)")
+    
+    @staticmethod
+    def _infer_pgsql_type(value):
+        """Infers PostgreSQL type based on Python type."""
+        value_type = type(value)
+        return DataManager._pgsql_type_map.get(value_type, "varchar(8000)")
 
     @staticmethod
     def _call_faker_method(method_name, param):

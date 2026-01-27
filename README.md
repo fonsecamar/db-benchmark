@@ -11,7 +11,7 @@ The benchmarking suite is built for easy deployment, supporting both local execu
 Currently supported databases:
 - Azure SQL Family (SQL Database, SQL Managed Instance, SQL Hyperscale), SQL Server (IaaS, Self-Hosted)
 - Azure Cosmos DB for NoSQL
-- Azure Cosmos DB for MongoDB vCore (including native MongoDB)
+- Azure DocumentDB (former Cosmos DB for MongoDB vCore)
 - Azure Database for PostgreSQL Flexible Server
 - Azure Managed Instance for Apache Cassandra (including native Apache Cassandra)
 
